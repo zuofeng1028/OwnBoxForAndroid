@@ -26,6 +26,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import android.graphics.Typeface
+import android.util.TypedValue
+import androidx.appcompat.widget.ActionMenuView
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -480,6 +483,57 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
+    private fun adjustToolbarActionButtons() {
+        if (!isToolbarInitialized) return
+        toolbar.contentInsetStartWithNavigation = dp2px(48)
+        toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))
+
+        val titleText = toolbar.title?.toString()
+        for (i in 0 until toolbar.childCount) {
+            val child = toolbar.getChildAt(i)
+            if (child is TextView && (titleText == null || child.text == titleText)) {
+                child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+                child.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                child.includeFontPadding = false
+            } else if (child is ActionMenuView) {
+                child.setPadding(0, 0, 0, 0)
+                applyActionMenuSpacing(child)
+                child.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                    applyActionMenuSpacing(child)
+                }
+            }
+        }
+        toolbar.post {
+            if (!isAdded || isDetached || !isToolbarInitialized) return@post
+            val tText = toolbar.title?.toString()
+            for (i in 0 until toolbar.childCount) {
+                val child = toolbar.getChildAt(i)
+                if (child is TextView && (tText == null || child.text == tText)) {
+                    child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+                    child.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                    child.includeFontPadding = false
+                } else if (child is ActionMenuView) {
+                    child.setPadding(0, 0, 0, 0)
+                    applyActionMenuSpacing(child)
+                }
+            }
+        }
+    }
+
+    private fun applyActionMenuSpacing(menuView: ActionMenuView) {
+        val pad = dp2px(6)
+        val minW = dp2px(38)
+        for (j in 0 until menuView.childCount) {
+            val item = menuView.getChildAt(j)
+            if (item.minimumWidth != minW) {
+                item.minimumWidth = minW
+            }
+            if (item.paddingStart != pad || item.paddingEnd != pad) {
+                item.setPaddingRelative(pad, item.paddingTop, pad, item.paddingBottom)
+            }
+        }
+    }
+
     private fun updateToolbarMenuTitles() {
         if (!isToolbarInitialized) return
         val isAll = isCurrentAllGroups()
@@ -528,7 +582,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun updateSearchMaxWidth(searchView: SearchView) {
         if (!isToolbarInitialized) return
         if (searchView.isIconified) {
-            searchView.maxWidth = dp2px(48)
+            searchView.maxWidth = dp2px(38)
             return
         }
         val tbWidth = toolbar.width
@@ -541,7 +595,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             toolbar.post {
                 if (isAdded && !isDetached && isToolbarInitialized) {
                     if (searchView.isIconified) {
-                        searchView.maxWidth = dp2px(48)
+                        searchView.maxWidth = dp2px(38)
                         return@post
                     }
                     val postW = toolbar.width
@@ -660,6 +714,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
             toolbar.setOnMenuItemClickListener(this)
             tintMenuIcons(toolbar.menu, primaryTextColor)
+            adjustToolbarActionButtons()
         } else {
             toolbar.setTitle(titleRes)
             toolbar.setNavigationIcon(R.drawable.ic_navigation_close)
@@ -805,7 +860,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             sv.maxWidth = targetW
                         }
                     } else {
-                        sv.maxWidth = dp2px(48)
+                        sv.maxWidth = dp2px(38)
                     }
                 }
             }
@@ -4221,7 +4276,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             val searchItem = toolbar.menu.findItem(R.id.action_search)
             searchItem?.collapseActionView()
             searchView.clearFocus()
-            searchView.maxWidth = dp2px(48)
+            searchView.maxWidth = dp2px(38)
+            adjustToolbarActionButtons()
 
             toolbar.menu.findItem(R.id.action_add)?.isVisible = true
             toolbar.title = getString(R.string.app_name)

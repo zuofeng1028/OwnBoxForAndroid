@@ -13,6 +13,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.AppBarLayout
 import io.nekohasekai.sagernet.R
+import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.ktx.getColorAttr
 import io.nekohasekai.sagernet.utils.Theme
 
@@ -33,6 +34,8 @@ open class ToolbarFragment : Fragment {
             toolbar.setNavigationOnClickListener {
                 (activity as? MainActivity)?.binding?.drawerLayout?.openDrawer(GravityCompat.START)
             }
+            toolbar.contentInsetStartWithNavigation = dp2px(48)
+            toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))
             val primaryTextColor = requireContext().getColorAttr(android.R.attr.textColorPrimary)
             toolbar.setTitleTextColor(primaryTextColor)
             toolbar.navigationIcon?.let {
