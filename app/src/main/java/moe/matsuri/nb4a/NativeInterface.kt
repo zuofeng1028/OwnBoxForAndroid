@@ -344,6 +344,9 @@ class NativeInterface : BoxPlatformInterface, NB4AInterface {
                         data.notification?.postNotificationTitle(newTitle)
                         ProfileManager.postUpdate(id, true)
                         activeProfile.let { ProfileManager.postUpdate(it.id, true) }
+                        data.binder.broadcast { b ->
+                            b.cbSelectorUpdate(activeProfile.id)
+                        }
                     }
                     return@runOnDefaultDispatcher
                 }

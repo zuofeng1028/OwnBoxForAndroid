@@ -95,6 +95,16 @@ public class BalancerBean extends InternalBean {
         }
     }
 
+    public String displayNodeOnly() {
+        if (balancerType == TYPE_GROUP) {
+            int gCount = targetGroupIds != null && !targetGroupIds.isEmpty() ? targetGroupIds.size() : (targetGroupId > 0 ? 1 : 0);
+            return "分组 " + gCount;
+        } else {
+            int count = proxies != null ? proxies.size() : 0;
+            return "节点 " + count;
+        }
+    }
+
     public String displayWithNodeName(String nodeName) {
         if (balancerType == TYPE_GROUP) {
             int gCount = targetGroupIds != null && !targetGroupIds.isEmpty() ? targetGroupIds.size() : (targetGroupId > 0 ? 1 : 0);

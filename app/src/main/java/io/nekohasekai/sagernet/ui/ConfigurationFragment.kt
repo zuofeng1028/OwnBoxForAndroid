@@ -923,6 +923,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             } else if (key == Key.HIDE_UNAVAILABLE_PROFILES) {
                 adapter.groupFragments.values.forEach { it.adapter?.reloadProfiles() }
+            } else if (key == "activeLeafProfileName" || key == "activeBalancerId") {
+                refreshProfileState()
             }
         }
     }
@@ -3034,33 +3036,24 @@ class ConfigurationFragment @JvmOverloads constructor(
                 if (!DataStore.showBalancerSummary) return ""
                 val b = bean ?: (p.requireBean() as? BalancerBean) ?: return ""
 
-                // 1. If currently connected in VPN and this profile is active, ActiveOutboundTracker has the exact active node!
-                val activeLeaf = ActiveOutboundTracker.getActiveLeafNodeDisplay(p)
-                if (!activeLeaf.isNullOrBlank()) {
-                    return b.displayWithNodeName(activeLeaf)
+                val pf = parentFragment as? ConfigurationFragment
+                val isSelected = pf?.isSelectedProfile(p.id) == true
+                val isConnected = DataStore.serviceState.started && (
+                    p.id == DataStore.activeBalancerId ||
+                    p.id == DataStore.currentProfile ||
+                    p.id == DataStore.selectedProxy ||
+                    (isSelected && pf?.isCurrentProfile(p.id) == true)
+                )
+
+                if (isConnected) {
+                    val activeLeaf = DataStore.activeLeafProfileName.takeIf { it.isNotBlank() }
+                        ?: ActiveOutboundTracker.getActiveLeafNodeDisplay(p)
+                    if (!activeLeaf.isNullOrBlank()) {
+                        return b.displayWithNodeName(activeLeaf)
+                    }
                 }
 
-                // 2. Otherwise find the active / lowest ping / first member proxy
-                val memberName = runCatching {
-                    val members = if (b.balancerType == BalancerBean.TYPE_GROUP) {
-                        val gids = b.targetGroupIds.takeIf { !it.isNullOrEmpty() }
-                            ?: listOfNotNull(b.targetGroupId.takeIf { it > 0 })
-                        gids.flatMap { SagerDatabase.proxyDao.getByGroup(it) }
-                    } else {
-                        b.proxies.mapNotNull { ProfileManager.getProfile(it) ?: SagerDatabase.proxyDao.getById(it) }
-                    }
-                    if (members.isEmpty()) null
-                    else {
-                        val best = members.filter { it.status == 1 && it.ping > 0 }.minByOrNull { it.ping }
-                        best?.displayName() ?: members.firstOrNull()?.displayName()
-                    }
-                }.getOrNull()
-
-                return if (!memberName.isNullOrBlank()) {
-                    b.displayWithNodeName(memberName)
-                } else {
-                    b.displayAddress()
-                }
+                return b.displayNodeOnly()
             }
 
             private fun hasMiddleRow(p: ProxyEntity): Boolean {
@@ -4002,12 +3995,26 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isEnabled = !started
                 removeButton.isEnabled = !started
                 applySelected(selected)
+
+                if (proxyEntity.type == ProxyEntity.TYPE_BALANCER) {
+                    val newAddress = adapter?.resolveBalancerDisplay(proxyEntity, entity.requireBean() as? BalancerBean) ?: ""
+                    if (profileAddress.text?.toString() != newAddress) {
+                        profileAddress.text = newAddress
+                    }
+                }
             }
 
             fun bindTraffic(proxyEntity: ProxyEntity) {
                 if (entity.id != proxyEntity.id) {
                     bind(proxyEntity)
                     return
+                }
+
+                if (proxyEntity.type == ProxyEntity.TYPE_BALANCER) {
+                    val newAddress = adapter?.resolveBalancerDisplay(proxyEntity, entity.requireBean() as? BalancerBean) ?: ""
+                    if (profileAddress.text?.toString() != newAddress) {
+                        profileAddress.text = newAddress
+                    }
                 }
 
                 if (DataStore.profileViewMode == 1) {

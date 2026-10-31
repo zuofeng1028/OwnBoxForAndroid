@@ -104,6 +104,9 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var profileCardStyle by configurationStore.stringToInt(Key.PROFILE_CARD_STYLE) { 0 }
     var profileViewMode by configurationStore.stringToInt(Key.PROFILE_VIEW_MODE) { 0 }
     var showBalancerSummary by configurationStore.boolean(Key.SHOW_BALANCER_SUMMARY) { true }
+    var activeLeafProfileId by configurationStore.long("activeLeafProfileId") { 0L }
+    var activeLeafProfileName by configurationStore.string("activeLeafProfileName") { "" }
+    var activeBalancerId by configurationStore.long("activeBalancerId") { 0L }
     var showSubscriptionInfoCard by configurationStore.boolean(Key.SHOW_SUBSCRIPTION_INFO_CARD) { true }
     var customThemeColor by configurationStore.int("custom_theme_color") { 0x00E676 }
     var hapticFeedback by configurationStore.boolean(Key.HAPTIC_FEEDBACK) { true }

@@ -32,6 +32,11 @@ object ActiveOutboundTracker {
     fun reset() {
         activeLeafProfileId = 0L
         activeLeafProfileName = ""
+        runCatching {
+            DataStore.activeLeafProfileId = 0L
+            DataStore.activeLeafProfileName = ""
+            DataStore.activeBalancerId = 0L
+        }
     }
 
     fun getStrategyDisplayName(profile: ProxyEntity): String {
@@ -71,6 +76,10 @@ object ActiveOutboundTracker {
     fun updateActiveLeaf(candidateId: Long, candidateName: String) {
         activeLeafProfileId = candidateId
         activeLeafProfileName = candidateName
+        runCatching {
+            DataStore.activeLeafProfileId = candidateId
+            DataStore.activeLeafProfileName = candidateName
+        }
     }
 
     fun getActiveLeafNodeDisplay(profile: ProxyEntity): String? {
@@ -82,9 +91,11 @@ object ActiveOutboundTracker {
         )
         if (!isBalancer && !isGroupStrategy) return null
 
-        val leafId = activeLeafProfileId
+        val leafId = activeLeafProfileId.takeIf { it > 0L }
+            ?: runCatching { DataStore.activeLeafProfileId }.getOrDefault(0L)
         if (leafId > 0L && leafId != profile.id) {
             val name = activeLeafProfileName.takeIf { it.isNotBlank() }
+                ?: runCatching { DataStore.activeLeafProfileName }.getOrNull()?.takeIf { it.isNotBlank() }
                 ?: runCatching { SagerDatabase.proxyDao.getById(leafId)?.displayName() }.getOrNull()
             return name?.takeIf { it.isNotBlank() }
         }
@@ -358,6 +369,11 @@ object ActiveOutboundTracker {
             activeLeafProfileId = candidateId
             val ent = runCatching { SagerDatabase.proxyDao.getById(candidateId) }.getOrNull()
             activeLeafProfileName = ent?.displayName() ?: ""
+            runCatching {
+                DataStore.activeLeafProfileId = candidateId
+                DataStore.activeLeafProfileName = activeLeafProfileName
+                DataStore.activeBalancerId = profile.id
+            }
             Logs.i("ActiveOutboundTracker: active node changed $oldId -> $candidateId ($activeLeafProfileName)")
 
             runOnDefaultDispatcher {

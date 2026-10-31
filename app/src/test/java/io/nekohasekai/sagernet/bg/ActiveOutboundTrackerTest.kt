@@ -171,6 +171,23 @@ class ActiveOutboundTrackerTest {
     }
 
     @Test
+    fun testBalancerDisplayMethods() {
+        val bean = BalancerBean().apply {
+            proxies = arrayListOf(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L)
+            strategy = BalancerBean.STRATEGY_LEAST_PING
+        }
+        assertEquals("节点 8", bean.displayNodeOnly())
+        assertEquals("节点 8 · 🇯🇵日本·移联 02", bean.displayWithNodeName("🇯🇵日本·移联 02"))
+
+        val groupBean = BalancerBean().apply {
+            balancerType = BalancerBean.TYPE_GROUP
+            targetGroupIds = arrayListOf(10L, 20L)
+        }
+        assertEquals("分组 2", groupBean.displayNodeOnly())
+        assertEquals("分组 2 · 🇯🇵日本", groupBean.displayWithNodeName("🇯🇵日本"))
+    }
+
+    @Test
     fun testReset() {
         ActiveOutboundTracker.reset()
         assertEquals(0L, ActiveOutboundTracker.activeLeafProfileId)
