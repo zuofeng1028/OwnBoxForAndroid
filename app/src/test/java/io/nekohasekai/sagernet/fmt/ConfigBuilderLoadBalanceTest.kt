@@ -90,22 +90,23 @@ class ConfigBuilderLoadBalanceTest {
         bean.proxies = listOf(1L, 2L, 3L)
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_LEAST_PING
-        assertEquals("[节点 (3)] 策略: 最低延迟", bean.displayAddress())
+        assertEquals("节点 3 · 最低延迟", bean.displayAddress())
+        assertEquals("节点 3 · 日本 02", bean.displayWithNodeName("日本 02"))
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_LEAST_LOAD
-        assertEquals("[节点 (3)] 策略: 最低负载", bean.displayAddress())
+        assertEquals("节点 3 · 最低负载", bean.displayAddress())
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_RANDOM
-        assertEquals("[节点 (3)] 策略: 随机选择", bean.displayAddress())
+        assertEquals("节点 3 · 随机选择", bean.displayAddress())
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_ROUND_ROBIN
-        assertEquals("[节点 (3)] 策略: 轮询", bean.displayAddress())
+        assertEquals("节点 3 · 轮询", bean.displayAddress())
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_CONSISTENT_HASH
-        assertEquals("[节点 (3)] 策略: 一致性哈希", bean.displayAddress())
+        assertEquals("节点 3 · 一致性哈希", bean.displayAddress())
 
         bean.strategy = io.nekohasekai.sagernet.fmt.internal.BalancerBean.STRATEGY_CONSISTENT_HASH_CAMEL
-        assertEquals("[节点 (3)] 策略: 一致性哈希", bean.displayAddress())
+        assertEquals("节点 3 · 一致性哈希", bean.displayAddress())
     }
 
     @Test

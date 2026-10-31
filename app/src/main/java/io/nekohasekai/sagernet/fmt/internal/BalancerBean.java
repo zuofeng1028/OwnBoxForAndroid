@@ -88,10 +88,26 @@ public class BalancerBean extends InternalBean {
         }
         if (balancerType == TYPE_GROUP) {
             int gCount = targetGroupIds != null && !targetGroupIds.isEmpty() ? targetGroupIds.size() : (targetGroupId > 0 ? 1 : 0);
-            return "[分组 (" + gCount + ")] 策略: " + stratName;
+            return "分组 " + gCount + (stratName != null && !stratName.isEmpty() ? " · " + stratName : "");
         } else {
             int count = proxies != null ? proxies.size() : 0;
-            return "[节点 (" + count + ")] 策略: " + stratName;
+            return "节点 " + count + (stratName != null && !stratName.isEmpty() ? " · " + stratName : "");
+        }
+    }
+
+    public String displayWithNodeName(String nodeName) {
+        if (balancerType == TYPE_GROUP) {
+            int gCount = targetGroupIds != null && !targetGroupIds.isEmpty() ? targetGroupIds.size() : (targetGroupId > 0 ? 1 : 0);
+            if (nodeName != null && !nodeName.trim().isEmpty()) {
+                return "分组 " + gCount + " · " + nodeName.trim();
+            }
+            return "分组 " + gCount;
+        } else {
+            int count = proxies != null ? proxies.size() : 0;
+            if (nodeName != null && !nodeName.trim().isEmpty()) {
+                return "节点 " + count + " · " + nodeName.trim();
+            }
+            return "节点 " + count;
         }
     }
 

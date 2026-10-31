@@ -38,6 +38,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import androidx.core.view.GravityCompat
+import android.view.Gravity
 import androidx.core.widget.addTextChangedListener
 import io.nekohasekai.sagernet.utils.Theme
 import kotlinx.coroutines.delay
@@ -83,6 +84,7 @@ import io.nekohasekai.sagernet.database.preference.OnPreferenceDataStoreChangeLi
 import io.nekohasekai.sagernet.databinding.LayoutProfileListBinding
 import io.nekohasekai.sagernet.databinding.LayoutProgressListBinding
 import io.nekohasekai.sagernet.fmt.AbstractBean
+import io.nekohasekai.sagernet.fmt.internal.BalancerBean
 import io.nekohasekai.sagernet.fmt.toUniversalLink
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
@@ -2716,6 +2718,29 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
                 true
             }
+
+            val viewDetailed = menu.findItem(R.id.action_view_mode_detailed)
+            val viewCompact = menu.findItem(R.id.action_view_mode_compact)
+            when (DataStore.profileViewMode) {
+                1 -> viewCompact?.isChecked = true
+                else -> viewDetailed?.isChecked = true
+            }
+            viewDetailed?.setOnMenuItemClickListener {
+                it.isChecked = true
+                if (DataStore.profileViewMode != 0) {
+                    DataStore.profileViewMode = 0
+                    (parentFragment as? ConfigurationFragment)?.refreshAllGroupFragmentsCardStyle()
+                }
+                true
+            }
+            viewCompact?.setOnMenuItemClickListener {
+                it.isChecked = true
+                if (DataStore.profileViewMode != 1) {
+                    DataStore.profileViewMode = 1
+                    (parentFragment as? ConfigurationFragment)?.refreshAllGroupFragmentsCardStyle()
+                }
+                true
+            }
         }
 
         private fun setupLayoutManager() {
@@ -3005,11 +3030,44 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             private fun getItemAt(index: Int) = getItem(configurationIdList[index])
 
+            fun resolveBalancerDisplay(p: ProxyEntity, bean: BalancerBean?): String {
+                if (!DataStore.showBalancerSummary) return ""
+                val b = bean ?: (p.requireBean() as? BalancerBean) ?: return ""
+
+                // 1. If currently connected in VPN and this profile is active, ActiveOutboundTracker has the exact active node!
+                val activeLeaf = ActiveOutboundTracker.getActiveLeafNodeDisplay(p)
+                if (!activeLeaf.isNullOrBlank()) {
+                    return b.displayWithNodeName(activeLeaf)
+                }
+
+                // 2. Otherwise find the active / lowest ping / first member proxy
+                val memberName = runCatching {
+                    val members = if (b.balancerType == BalancerBean.TYPE_GROUP) {
+                        val gids = b.targetGroupIds.takeIf { !it.isNullOrEmpty() }
+                            ?: listOfNotNull(b.targetGroupId.takeIf { it > 0 })
+                        gids.flatMap { SagerDatabase.proxyDao.getByGroup(it) }
+                    } else {
+                        b.proxies.mapNotNull { ProfileManager.getProfile(it) ?: SagerDatabase.proxyDao.getById(it) }
+                    }
+                    if (members.isEmpty()) null
+                    else {
+                        val best = members.filter { it.status == 1 && it.ping > 0 }.minByOrNull { it.ping }
+                        best?.displayName() ?: members.firstOrNull()?.displayName()
+                    }
+                }.getOrNull()
+
+                return if (!memberName.isNullOrBlank()) {
+                    b.displayWithNodeName(memberName)
+                } else {
+                    b.displayAddress()
+                }
+            }
+
             private fun hasMiddleRow(p: ProxyEntity): Boolean {
-                val showTraffic = p.rx + p.tx != 0L
+                val showTraffic = (DataStore.profileViewMode == 0) && (p.rx + p.tx != 0L)
                 val bean = p.requireBean()
                 val address = if (p.type == ProxyEntity.TYPE_BALANCER) {
-                    bean.displayAddress()
+                    resolveBalancerDisplay(p, bean as? BalancerBean)
                 } else if (alwaysShowAddress && bean.name.isNotBlank()) {
                     bean.displayAddress()
                 } else ""
@@ -3745,7 +3803,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
 
-            private fun speedTestResultText(proxyEntity: ProxyEntity): String? {
+            private fun speedTestResultText(proxyEntity: ProxyEntity, isCompactRate: Boolean = false): String? {
                 val outcome = SpeedTestOutcome(
                     mode = proxyEntity.speedTestMode,
                     downloadBitsPerSecond = proxyEntity.speedTestDownloadBitsPerSecond,
@@ -3758,7 +3816,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                         SpeedTestDirection.DOWNLOAD -> "↓"
                         SpeedTestDirection.UPLOAD -> "↑"
                     }
-                    "$direction ${getString(R.string.speed_test_rate_mbps, rate.bitsPerSecond / 1_000_000.0)}"
+                    val mbps = rate.bitsPerSecond / 1_000_000.0
+                    if (isCompactRate) {
+                        String.format(Locale.ROOT, "%s%.1fM", direction, mbps)
+                    } else {
+                        "$direction ${getString(R.string.speed_test_rate_mbps, mbps)}"
+                    }
                 }
             }
 
@@ -3822,19 +3885,30 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileType.background = chipBg
                 profileType.setTextColor(protocolColor)
 
+                val isCompact = DataStore.profileViewMode == 1
+                val isDoubleColumn = DataStore.groupLayoutMode == 1
+
                 val rx = proxyEntity.rx
                 val tx = proxyEntity.tx
                 val live = adapter?.liveSpeedTests?.get(proxyEntity.id)
                 val liveText = if (live != null && !live.done) {
                     when (live.stage) {
-                        SpeedTestQueueRunner.STAGE_DOWNLOAD -> "↓ ${getString(R.string.speed_test_rate_mbps, live.downloadBitsPerSecond / 1_000_000.0)}"
-                        SpeedTestQueueRunner.STAGE_UPLOAD -> "↑ ${getString(R.string.speed_test_rate_mbps, live.uploadBitsPerSecond / 1_000_000.0)}"
+                        SpeedTestQueueRunner.STAGE_DOWNLOAD -> {
+                            val mbps = live.downloadBitsPerSecond / 1_000_000.0
+                            if (isDoubleColumn) String.format(Locale.ROOT, "↓%.1fM", mbps)
+                            else "↓ ${getString(R.string.speed_test_rate_mbps, mbps)}"
+                        }
+                        SpeedTestQueueRunner.STAGE_UPLOAD -> {
+                            val mbps = live.uploadBitsPerSecond / 1_000_000.0
+                            if (isDoubleColumn) String.format(Locale.ROOT, "↑%.1fM", mbps)
+                            else "↑ ${getString(R.string.speed_test_rate_mbps, mbps)}"
+                        }
                         else -> null
                     }
                 } else null
-                val speedTestText = liveText ?: speedTestResultText(proxyEntity)
+                val speedTestText = if (isCompact) null else (liveText ?: speedTestResultText(proxyEntity, isDoubleColumn))
 
-                val showTraffic = rx + tx != 0L
+                val showTraffic = !isCompact && (rx + tx != 0L)
                 trafficText.isVisible = showTraffic
                 if (showTraffic) {
                     trafficText.text = view.context.getString(
@@ -3845,7 +3919,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
 
                 val address = if (proxyEntity.type == ProxyEntity.TYPE_BALANCER) {
-                    bean.displayAddress()
+                    adapter?.resolveBalancerDisplay(proxyEntity, bean as? BalancerBean) ?: ""
                 } else if (pf.alwaysShowAddress && bean.name.isNotBlank()) {
                     bean.displayAddress()
                 } else {
@@ -3854,9 +3928,43 @@ class ConfigurationFragment @JvmOverloads constructor(
                 profileAddress.text = address
                 profileAddress.setTextColor(requireContext().getColorAttr(android.R.attr.textColorSecondary))
                 profileAddress.isSelected = true
+
+                val middleRow = trafficText.parent as? LinearLayout
+                if (middleRow != null) {
+                    if (isDoubleColumn && showTraffic && address.isNotBlank()) {
+                        middleRow.orientation = LinearLayout.VERTICAL
+                        val addrLp = profileAddress.layoutParams as? LinearLayout.LayoutParams
+                        if (addrLp != null) {
+                            addrLp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                            addrLp.weight = 0f
+                            profileAddress.layoutParams = addrLp
+                        }
+                        val trafLp = trafficText.layoutParams as? LinearLayout.LayoutParams
+                        if (trafLp != null) {
+                            trafLp.topMargin = dp2px(2)
+                            trafLp.gravity = Gravity.END
+                            trafficText.layoutParams = trafLp
+                        }
+                    } else {
+                        middleRow.orientation = LinearLayout.HORIZONTAL
+                        val addrLp = profileAddress.layoutParams as? LinearLayout.LayoutParams
+                        if (addrLp != null) {
+                            addrLp.width = 0
+                            addrLp.weight = 1f
+                            profileAddress.layoutParams = addrLp
+                        }
+                        val trafLp = trafficText.layoutParams as? LinearLayout.LayoutParams
+                        if (trafLp != null) {
+                            trafLp.topMargin = 0
+                            trafLp.gravity = Gravity.NO_GRAVITY
+                            trafficText.layoutParams = trafLp
+                        }
+                    }
+                }
+
                 val trafficRowEmpty =
                     (!showTraffic || proxyEntity.status <= 0) && address.isBlank()
-                (trafficText.parent as View).visibility = when {
+                middleRow?.visibility = when {
                     !trafficRowEmpty -> View.VISIBLE
                     adapter?.neighbourHasMiddleRow(bindingAdapterPosition) == true -> View.INVISIBLE
                     else -> View.GONE
@@ -3899,6 +4007,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             fun bindTraffic(proxyEntity: ProxyEntity) {
                 if (entity.id != proxyEntity.id) {
                     bind(proxyEntity)
+                    return
+                }
+
+                if (DataStore.profileViewMode == 1) {
+                    trafficText.isVisible = false
+                    lastBoundTx = proxyEntity.tx
+                    lastBoundRx = proxyEntity.rx
                     return
                 }
 

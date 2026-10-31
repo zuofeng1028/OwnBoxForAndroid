@@ -194,6 +194,17 @@
                                 android:id="@+id/action_card_style_stroke"
                                 android:title="@string/card_style_stroke" />
                         </group>
+                        <item
+                            android:title="@string/card_view_mode"
+                            android:enabled="false" />
+                        <group android:id="@+id/card_view_mode_group" android:checkableBehavior="single">
+                            <item
+                                android:id="@+id/action_view_mode_detailed"
+                                android:title="@string/card_view_mode_detailed" />
+                            <item
+                                android:id="@+id/action_view_mode_compact"
+                                android:title="@string/card_view_mode_compact" />
+                        </group>
                     </menu>
                 </item>
             </group>

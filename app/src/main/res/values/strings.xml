@@ -44,6 +44,11 @@
     <string name="card_style">Card</string>
     <string name="card_style_classic">Classic</string>
     <string name="card_style_stroke">Stroke</string>
+    <string name="card_view_mode">View mode</string>
+    <string name="card_view_mode_detailed">Detailed</string>
+    <string name="card_view_mode_compact">Compact</string>
+    <string name="show_balancer_summary">Show balancer summary</string>
+    <string name="show_balancer_summary_sum">Show node count and active landing node in balancer cards (e.g. 节点 8 · 日本 02)</string>
     <string name="group_status_empty">Empty group</string>
     <string name="group_status_empty_subscription">Not updated yet</string>
     <string name="group_status_proxies">%d Proxies</string>
