@@ -260,6 +260,7 @@
         <item name="android:colorBackground">@color/md3_surface</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
         <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton</item>
+        <item name="actionOverflowButtonStyle">@style/Widget.SagerNet.ActionOverflowButton</item>
         <item name="toolbarNavigationButtonStyle">@style/Widget.SagerNet.ToolbarNavigationButton</item>
     </style>
 
@@ -270,19 +271,26 @@
         <item name="android:colorBackground">@color/black</item>
         <item name="actionBarPopupTheme">@style/ThemeOverlay.MaterialComponents.Dark</item>
         <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton</item>
+        <item name="actionOverflowButtonStyle">@style/Widget.SagerNet.ActionOverflowButton</item>
         <item name="toolbarNavigationButtonStyle">@style/Widget.SagerNet.ToolbarNavigationButton</item>
     </style>
 
     <style name="Widget.SagerNet.ActionButton" parent="Widget.AppCompat.ActionButton">
-        <item name="android:minWidth">38dp</item>
-        <item name="android:paddingStart">6dp</item>
-        <item name="android:paddingEnd">6dp</item>
+        <item name="android:minWidth">36dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+    </style>
+
+    <style name="Widget.SagerNet.ActionOverflowButton" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:minWidth">36dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
     </style>
 
     <style name="Widget.SagerNet.ToolbarNavigationButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">
         <item name="android:minWidth">40dp</item>
-        <item name="android:paddingStart">6dp</item>
-        <item name="android:paddingEnd">6dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
     </style>
 
     <style name="TextAppearance.SagerNet.Toolbar.Title" parent="TextAppearance.MaterialComponents.Headline6">

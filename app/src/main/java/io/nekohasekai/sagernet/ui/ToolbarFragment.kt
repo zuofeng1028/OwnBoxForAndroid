@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.GravityCompat
@@ -34,10 +35,18 @@ open class ToolbarFragment : Fragment {
             toolbar.setNavigationOnClickListener {
                 (activity as? MainActivity)?.binding?.drawerLayout?.openDrawer(GravityCompat.START)
             }
-            toolbar.contentInsetStartWithNavigation = dp2px(48)
-            toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))
+            val customTitle = tb.findViewById<TextView>(R.id.toolbar_title_view)
+            if (customTitle != null) {
+                toolbar.contentInsetStartWithNavigation = 0
+                toolbar.setContentInsetsRelative(0, dp2px(4))
+                toolbar.title = null
+            } else {
+                toolbar.contentInsetStartWithNavigation = dp2px(48)
+                toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))
+            }
             val primaryTextColor = requireContext().getColorAttr(android.R.attr.textColorPrimary)
             toolbar.setTitleTextColor(primaryTextColor)
+            customTitle?.setTextColor(primaryTextColor)
             toolbar.navigationIcon?.let {
                 val tinted = it.mutate()
                 DrawableCompat.setTint(tinted, primaryTextColor)

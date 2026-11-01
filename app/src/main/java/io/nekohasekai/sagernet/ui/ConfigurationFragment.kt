@@ -485,17 +485,20 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private fun adjustToolbarActionButtons() {
         if (!isToolbarInitialized) return
-        toolbar.contentInsetStartWithNavigation = dp2px(48)
-        toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))
+        toolbar.contentInsetStartWithNavigation = 0
+        toolbar.setContentInsetsRelative(0, dp2px(4))
+        toolbar.title = null
 
-        val titleText = toolbar.title?.toString()
+        val titleView = view?.findViewById<TextView>(R.id.toolbar_title_view)
+        titleView?.let { tv ->
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+            tv.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            tv.includeFontPadding = false
+        }
+
         for (i in 0 until toolbar.childCount) {
             val child = toolbar.getChildAt(i)
-            if (child is TextView && (titleText == null || child.text == titleText)) {
-                child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
-                child.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                child.includeFontPadding = false
-            } else if (child is ActionMenuView) {
+            if (child is ActionMenuView) {
                 child.setPadding(0, 0, 0, 0)
                 applyActionMenuSpacing(child)
                 child.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -505,14 +508,10 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
         toolbar.post {
             if (!isAdded || isDetached || !isToolbarInitialized) return@post
-            val tText = toolbar.title?.toString()
+            toolbar.title = null
             for (i in 0 until toolbar.childCount) {
                 val child = toolbar.getChildAt(i)
-                if (child is TextView && (tText == null || child.text == tText)) {
-                    child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
-                    child.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
-                    child.includeFontPadding = false
-                } else if (child is ActionMenuView) {
+                if (child is ActionMenuView) {
                     child.setPadding(0, 0, 0, 0)
                     applyActionMenuSpacing(child)
                 }
@@ -521,15 +520,24 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     private fun applyActionMenuSpacing(menuView: ActionMenuView) {
-        val pad = dp2px(6)
-        val minW = dp2px(38)
+        val pad = dp2px(4)
+        val minW = dp2px(36)
+        val margin = dp2px(1)
         for (j in 0 until menuView.childCount) {
             val item = menuView.getChildAt(j)
-            if (item.minimumWidth != minW) {
-                item.minimumWidth = minW
-            }
-            if (item.paddingStart != pad || item.paddingEnd != pad) {
-                item.setPaddingRelative(pad, item.paddingTop, pad, item.paddingBottom)
+            try {
+                val field = item.javaClass.getDeclaredField("mMinWidth")
+                field.isAccessible = true
+                field.setInt(item, minW)
+            } catch (_: Throwable) {}
+            item.minimumWidth = minW
+            item.setPadding(pad, item.paddingTop, pad, item.paddingBottom)
+            (item.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                if (lp.leftMargin != margin || lp.rightMargin != margin) {
+                    lp.leftMargin = margin
+                    lp.rightMargin = margin
+                    item.layoutParams = lp
+                }
             }
         }
     }
@@ -582,7 +590,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun updateSearchMaxWidth(searchView: SearchView) {
         if (!isToolbarInitialized) return
         if (searchView.isIconified) {
-            searchView.maxWidth = dp2px(38)
+            searchView.maxWidth = dp2px(36)
             return
         }
         val tbWidth = toolbar.width
@@ -595,7 +603,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             toolbar.post {
                 if (isAdded && !isDetached && isToolbarInitialized) {
                     if (searchView.isIconified) {
-                        searchView.maxWidth = dp2px(38)
+                        searchView.maxWidth = dp2px(36)
                         return@post
                     }
                     val postW = toolbar.width
@@ -735,6 +743,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(bg)
                 toolbar.setBackgroundColor(bg)
                 toolbar.setTitleTextColor(Color.WHITE)
+                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(Color.WHITE)
                 tabLayout.setBackgroundColor(bg)
                 tabLayout.setSelectedTabIndicatorColor(Color.WHITE)
                 tabLayout.setTabTextColors(Color.parseColor("#CAC4D0"), Color.WHITE)
@@ -754,6 +763,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(Color.WHITE)
                 toolbar.setBackgroundColor(Color.WHITE)
                 toolbar.setTitleTextColor(Color.parseColor("#212121"))
+                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(Color.parseColor("#212121"))
                 tabLayout.setBackgroundColor(Color.WHITE)
                 tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#212121"))
                 tabLayout.setTabTextColors(Color.parseColor("#8A000000"), Color.parseColor("#212121"))
@@ -776,6 +786,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(bg)
                 toolbar.setBackgroundColor(bg)
                 toolbar.setTitleTextColor(textPrimary)
+                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(textPrimary)
                 tabLayout.setBackgroundColor(bg)
                 tabLayout.setSelectedTabIndicatorColor(textPrimary)
                 tabLayout.setTabTextColors(textSecondary, textPrimary)
@@ -795,6 +806,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val tabIndicatorColor = requireContext().getColorAttr(R.attr.tabIndicatorColor)
                 val tabSelectedTextColor = requireContext().getColorAttr(R.attr.tabSelectedTextColor)
                 val tabUnselectedTextColor = requireContext().getColorAttr(R.attr.tabTextColor)
+                val textColorPrimary = requireContext().getColorAttr(android.R.attr.textColorPrimary)
+                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(textColorPrimary)
                 tabLayout.setSelectedTabIndicatorColor(tabIndicatorColor)
                 tabLayout.setTabTextColors(tabUnselectedTextColor, tabSelectedTextColor)
             }
@@ -808,8 +821,11 @@ class ConfigurationFragment @JvmOverloads constructor(
             searchView.setOnQueryTextListener(this)
 
             searchView.setOnSearchClickListener {
+                view.findViewById<View>(R.id.toolbar_title_view)?.visibility = View.GONE
                 toolbar.menu.findItem(R.id.action_add)?.isVisible = false
-                toolbar.title = ""
+                toolbar.menu.findItem(R.id.action_connection_url_test)?.isVisible = false
+                toolbar.menu.findItem(R.id.action_speed_test_group)?.isVisible = false
+                toolbar.title = null
                 updateSearchMaxWidth(searchView)
                 updateToolbarMenuTitles()
 
@@ -860,7 +876,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             sv.maxWidth = targetW
                         }
                     } else {
-                        sv.maxWidth = dp2px(38)
+                        sv.maxWidth = dp2px(36)
                     }
                 }
             }
@@ -4276,11 +4292,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             val searchItem = toolbar.menu.findItem(R.id.action_search)
             searchItem?.collapseActionView()
             searchView.clearFocus()
-            searchView.maxWidth = dp2px(38)
+            searchView.maxWidth = dp2px(36)
             adjustToolbarActionButtons()
-
-            toolbar.menu.findItem(R.id.action_add)?.isVisible = true
-            toolbar.title = getString(R.string.app_name)
 
             val cancelContext = requireContext()
             val primaryColor = when {
@@ -4289,6 +4302,15 @@ class ConfigurationFragment @JvmOverloads constructor(
                 Theme.isLightGrayTheme(cancelContext) -> Color.parseColor("#1F2937")
                 else -> cancelContext.getColorAttr(android.R.attr.textColorPrimary)
             }
+
+            view?.findViewById<View>(R.id.toolbar_title_view)?.let { tv ->
+                tv.visibility = View.VISIBLE
+                (tv as? TextView)?.setTextColor(primaryColor)
+            }
+            toolbar.menu.findItem(R.id.action_add)?.isVisible = true
+            toolbar.menu.findItem(R.id.action_connection_url_test)?.isVisible = true
+            toolbar.menu.findItem(R.id.action_speed_test_group)?.isVisible = true
+            toolbar.title = null
 
             if (!select) {
                 toolbar.setNavigationIcon(R.drawable.ic_navigation_menu)
