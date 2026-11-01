@@ -494,6 +494,9 @@ class ConfigurationFragment @JvmOverloads constructor(
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
             tv.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             tv.includeFontPadding = false
+            tv.setOnClickListener {
+                toolbar.performClick()
+            }
         }
 
         for (i in 0 until toolbar.childCount) {
@@ -523,6 +526,17 @@ class ConfigurationFragment @JvmOverloads constructor(
         val pad = dp2px(4)
         val minW = dp2px(36)
         val margin = dp2px(1)
+        try {
+            val cellField = ActionMenuView::class.java.getDeclaredField("mMinCellSize")
+            cellField.isAccessible = true
+            cellField.setInt(menuView, minW)
+        } catch (_: Throwable) {}
+        try {
+            val padField = ActionMenuView::class.java.getDeclaredField("mGeneratedItemPadding")
+            padField.isAccessible = true
+            padField.setInt(menuView, dp2px(2))
+        } catch (_: Throwable) {}
+
         for (j in 0 until menuView.childCount) {
             val item = menuView.getChildAt(j)
             try {

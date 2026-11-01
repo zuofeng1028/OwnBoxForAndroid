@@ -35,7 +35,7 @@ open class ToolbarFragment : Fragment {
             toolbar.setNavigationOnClickListener {
                 (activity as? MainActivity)?.binding?.drawerLayout?.openDrawer(GravityCompat.START)
             }
-            val customTitle = tb.findViewById<TextView>(R.id.toolbar_title_view)
+            val customTitle = view.findViewById<TextView>(R.id.toolbar_title_view)
             if (customTitle != null) {
                 toolbar.contentInsetStartWithNavigation = 0
                 toolbar.setContentInsetsRelative(0, dp2px(4))
