@@ -40,6 +40,9 @@ open class ToolbarFragment : Fragment {
                 toolbar.contentInsetStartWithNavigation = 0
                 toolbar.setContentInsetsRelative(0, dp2px(4))
                 toolbar.title = null
+                toolbar.setBackgroundColor(Color.TRANSPARENT)
+                customTitle.text = getString(R.string.app_name)
+                customTitle.visibility = View.VISIBLE
             } else {
                 toolbar.contentInsetStartWithNavigation = dp2px(48)
                 toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))

@@ -483,14 +483,19 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
+    private var isAdjustingMenuSpacing = false
+
     private fun adjustToolbarActionButtons() {
         if (!isToolbarInitialized) return
         toolbar.contentInsetStartWithNavigation = 0
         toolbar.setContentInsetsRelative(0, dp2px(4))
         toolbar.title = null
+        toolbar.setBackgroundColor(Color.TRANSPARENT)
 
         val titleView = view?.findViewById<TextView>(R.id.toolbar_title_view)
         titleView?.let { tv ->
+            tv.text = getString(R.string.app_name)
+            tv.visibility = View.VISIBLE
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
             tv.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             tv.includeFontPadding = false
@@ -512,6 +517,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         toolbar.post {
             if (!isAdded || isDetached || !isToolbarInitialized) return@post
             toolbar.title = null
+            toolbar.setBackgroundColor(Color.TRANSPARENT)
             for (i in 0 until toolbar.childCount) {
                 val child = toolbar.getChildAt(i)
                 if (child is ActionMenuView) {
@@ -523,9 +529,11 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     private fun applyActionMenuSpacing(menuView: ActionMenuView) {
-        val pad = dp2px(4)
-        val minW = dp2px(36)
-        val margin = dp2px(1)
+        if (isAdjustingMenuSpacing) return
+        val pad = dp2px(3)
+        val minW = dp2px(34)
+        val gap = dp2px(2)
+
         try {
             val cellField = ActionMenuView::class.java.getDeclaredField("mMinCellSize")
             cellField.isAccessible = true
@@ -534,7 +542,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         try {
             val padField = ActionMenuView::class.java.getDeclaredField("mGeneratedItemPadding")
             padField.isAccessible = true
-            padField.setInt(menuView, dp2px(2))
+            padField.setInt(menuView, dp2px(1))
         } catch (_: Throwable) {}
 
         for (j in 0 until menuView.childCount) {
@@ -547,11 +555,33 @@ class ConfigurationFragment @JvmOverloads constructor(
             item.minimumWidth = minW
             item.setPadding(pad, item.paddingTop, pad, item.paddingBottom)
             (item.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
-                if (lp.leftMargin != margin || lp.rightMargin != margin) {
-                    lp.leftMargin = margin
-                    lp.rightMargin = margin
+                if (lp.leftMargin != 0 || lp.rightMargin != 0) {
+                    lp.leftMargin = 0
+                    lp.rightMargin = 0
                     item.layoutParams = lp
                 }
+            }
+        }
+
+        val searchItem = if (isToolbarInitialized) toolbar.menu.findItem(R.id.action_search) else null
+        val sv = searchItem?.actionView as? SearchView
+        val isSearching = sv != null && !sv.isIconified
+
+        if (!isSearching && menuView.width > 0) {
+            isAdjustingMenuSpacing = true
+            try {
+                var rightEdge = menuView.width - menuView.paddingEnd
+                for (i in menuView.childCount - 1 downTo 0) {
+                    val child = menuView.getChildAt(i)
+                    if (child.visibility != View.GONE) {
+                        val w = minW
+                        val left = rightEdge - w
+                        child.layout(left, child.top, rightEdge, child.bottom)
+                        rightEdge = left - gap
+                    }
+                }
+            } finally {
+                isAdjustingMenuSpacing = false
             }
         }
     }
@@ -755,9 +785,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             Theme.isBlackTheme(ctx) -> {
                 val bg = Color.BLACK
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(bg)
-                toolbar.setBackgroundColor(bg)
+                view.findViewById<View>(R.id.toolbar_container)?.setBackgroundColor(bg)
+                toolbar.setBackgroundColor(Color.TRANSPARENT)
                 toolbar.setTitleTextColor(Color.WHITE)
-                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(Color.WHITE)
+                val tv = view.findViewById<TextView>(R.id.toolbar_title_view)
+                tv?.text = getString(R.string.app_name)
+                tv?.visibility = View.VISIBLE
+                tv?.setTextColor(Color.WHITE)
                 tabLayout.setBackgroundColor(bg)
                 tabLayout.setSelectedTabIndicatorColor(Color.WHITE)
                 tabLayout.setTabTextColors(Color.parseColor("#CAC4D0"), Color.WHITE)
@@ -775,9 +809,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             Theme.isWhiteTheme(ctx) -> {
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(Color.WHITE)
-                toolbar.setBackgroundColor(Color.WHITE)
+                view.findViewById<View>(R.id.toolbar_container)?.setBackgroundColor(Color.WHITE)
+                toolbar.setBackgroundColor(Color.TRANSPARENT)
                 toolbar.setTitleTextColor(Color.parseColor("#212121"))
-                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(Color.parseColor("#212121"))
+                val tv = view.findViewById<TextView>(R.id.toolbar_title_view)
+                tv?.text = getString(R.string.app_name)
+                tv?.visibility = View.VISIBLE
+                tv?.setTextColor(Color.parseColor("#212121"))
                 tabLayout.setBackgroundColor(Color.WHITE)
                 tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#212121"))
                 tabLayout.setTabTextColors(Color.parseColor("#8A000000"), Color.parseColor("#212121"))
@@ -798,9 +836,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val textPrimary = Color.parseColor("#1F2937")
                 val textSecondary = Color.parseColor("#6B7280")
                 view.findViewById<View>(R.id.appbar)?.setBackgroundColor(bg)
-                toolbar.setBackgroundColor(bg)
+                view.findViewById<View>(R.id.toolbar_container)?.setBackgroundColor(bg)
+                toolbar.setBackgroundColor(Color.TRANSPARENT)
                 toolbar.setTitleTextColor(textPrimary)
-                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(textPrimary)
+                val tv = view.findViewById<TextView>(R.id.toolbar_title_view)
+                tv?.text = getString(R.string.app_name)
+                tv?.visibility = View.VISIBLE
+                tv?.setTextColor(textPrimary)
                 tabLayout.setBackgroundColor(bg)
                 tabLayout.setSelectedTabIndicatorColor(textPrimary)
                 tabLayout.setTabTextColors(textSecondary, textPrimary)
@@ -821,7 +863,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val tabSelectedTextColor = requireContext().getColorAttr(R.attr.tabSelectedTextColor)
                 val tabUnselectedTextColor = requireContext().getColorAttr(R.attr.tabTextColor)
                 val textColorPrimary = requireContext().getColorAttr(android.R.attr.textColorPrimary)
-                view.findViewById<TextView>(R.id.toolbar_title_view)?.setTextColor(textColorPrimary)
+                toolbar.setBackgroundColor(Color.TRANSPARENT)
+                val tv = view.findViewById<TextView>(R.id.toolbar_title_view)
+                tv?.text = getString(R.string.app_name)
+                tv?.visibility = View.VISIBLE
+                tv?.setTextColor(textColorPrimary)
                 tabLayout.setSelectedTabIndicatorColor(tabIndicatorColor)
                 tabLayout.setTabTextColors(tabUnselectedTextColor, tabSelectedTextColor)
             }
@@ -4319,6 +4365,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             view?.findViewById<View>(R.id.toolbar_title_view)?.let { tv ->
                 tv.visibility = View.VISIBLE
+                (tv as? TextView)?.text = getString(R.string.app_name)
                 (tv as? TextView)?.setTextColor(primaryColor)
             }
             toolbar.menu.findItem(R.id.action_add)?.isVisible = true
