@@ -43,6 +43,15 @@ open class ToolbarFragment : Fragment {
                 toolbar.setBackgroundColor(Color.TRANSPARENT)
                 customTitle.text = getString(R.string.app_name)
                 customTitle.visibility = View.VISIBLE
+                for (i in 0 until toolbar.childCount) {
+                    val child = toolbar.getChildAt(i)
+                    if (child is android.widget.ImageButton) {
+                        child.minimumWidth = dp2px(40)
+                        child.setPadding(dp2px(8), 0, dp2px(8), 0)
+                        child.scaleX = 0.9f
+                        child.scaleY = 0.9f
+                    }
+                }
             } else {
                 toolbar.contentInsetStartWithNavigation = dp2px(48)
                 toolbar.setContentInsetsRelative(dp2px(48), dp2px(4))

@@ -504,7 +504,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         titleView?.let { tv ->
             tv.text = getString(R.string.app_name)
             tv.visibility = View.VISIBLE
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17.5f)
+            tv.letterSpacing = -0.01f
             tv.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             tv.includeFontPadding = false
             tv.setOnClickListener {
@@ -514,7 +515,12 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         for (i in 0 until toolbar.childCount) {
             val child = toolbar.getChildAt(i)
-            if (child is ActionMenuView) {
+            if (child is android.widget.ImageButton) {
+                child.minimumWidth = dp2px(40)
+                child.setPadding(dp2px(8), 0, dp2px(8), 0)
+                child.scaleX = 0.9f
+                child.scaleY = 0.9f
+            } else if (child is ActionMenuView) {
                 child.clipChildren = false
                 child.clipToPadding = false
                 child.setPadding(0, 0, 0, 0)
@@ -529,7 +535,12 @@ class ConfigurationFragment @JvmOverloads constructor(
             toolbar.setBackgroundColor(Color.TRANSPARENT)
             for (i in 0 until toolbar.childCount) {
                 val child = toolbar.getChildAt(i)
-                if (child is ActionMenuView) {
+                if (child is android.widget.ImageButton) {
+                    child.minimumWidth = dp2px(40)
+                    child.setPadding(dp2px(8), 0, dp2px(8), 0)
+                    child.scaleX = 0.9f
+                    child.scaleY = 0.9f
+                } else if (child is ActionMenuView) {
                     child.clipChildren = false
                     child.clipToPadding = false
                     child.setPadding(0, 0, 0, 0)
@@ -543,13 +554,14 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private fun applyActionMenuSpacing(menuView: ActionMenuView) {
         if (isAdjustingMenuSpacing) return
-        val minW = dp2px(32)
+        val minW = dp2px(33)
         val gap = dp2px(2)
         val endMargin = dp2px(6)
+        val iconScale = 0.88f
 
         menuView.clipChildren = false
         menuView.clipToPadding = false
-        menuView.minimumWidth = dp2px(174)
+        menuView.minimumWidth = dp2px(179)
 
         try {
             val cellField = ActionMenuView::class.java.getDeclaredField("mMinCellSize")
@@ -593,6 +605,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     maxWidth = minW
                     setPadding(0, 0, 0, 0)
                     scaleType = ImageView.ScaleType.CENTER
+                    scaleX = iconScale
+                    scaleY = iconScale
                     (layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
                         if (lp.width != minW || lp.leftMargin != 0 || lp.rightMargin != 0) {
                             lp.width = minW
@@ -614,6 +628,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                 } catch (_: Throwable) {}
                 item.minimumWidth = minW
                 item.setPadding(0, 0, 0, 0)
+                item.scaleX = iconScale
+                item.scaleY = iconScale
             }
             (item.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
                 if (lp.leftMargin != 0 || lp.rightMargin != 0) {
@@ -800,7 +816,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        val btnW = dp2px(32)
+        val btnW = dp2px(33)
         searchView.clipChildren = false
         searchView.clipToPadding = false
         searchView.setPadding(0, 0, 0, 0)
@@ -821,6 +837,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         searchBtn?.maxWidth = btnW
         searchBtn?.setPadding(0, 0, 0, 0)
         searchBtn?.scaleType = ImageView.ScaleType.CENTER
+        searchBtn?.scaleX = 0.88f
+        searchBtn?.scaleY = 0.88f
         (searchBtn?.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
             lp.width = btnW
             lp.leftMargin = 0

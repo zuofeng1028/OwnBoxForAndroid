@@ -67,15 +67,16 @@ object RawUpdater : GroupUpdater() {
             val preferredUa = subscription.customUserAgent?.takeIf { it.isNotBlank() }
                 ?: DataStore.defaultSubscriptionUserAgent
 
-            // Fallback UA candidates in order: user preferred UA -> sing-box/1.15.0 -> Singbox/1.14 -> clash-meta -> v2rayN/7.8.2 -> Throne/1.0.0 -> sing-box/1.14.0
+            // Fallback UA candidates in order: user preferred UA -> NekoBox ClashMeta -> ClashMetaForAndroid -> clash-meta -> v2rayNG -> v2rayN -> sing-box -> Browser
             val candidateUas = linkedSetOf(
                 preferredUa,
-                "sing-box/1.15.0",
-                "Singbox/1.14",
+                "NekoBox/Android/1.4.2 (Prefer ClashMeta Format)",
+                "ClashMetaForAndroid/2.11.5.Meta",
                 "clash-meta",
+                "v2rayNG/1.9.39",
                 "v2rayN/7.8.2",
-                "Throne/1.0.0",
-                "sing-box/1.14.0"
+                "sing-box/1.15.0",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
             )
 
             var fetchedProxies: List<AbstractBean>? = null
@@ -103,9 +104,13 @@ object RawUpdater : GroupUpdater() {
                 return request.execute()
             }
 
+            val shouldTryProxy = DataStore.serviceState.connected ||
+                DataStore.serviceState.started ||
+                (!DataStore.mixedInboundDisabled && DataStore.currentProfile > 0L)
+
             for (ua in candidateUas) {
                 try {
-                    val response = if (DataStore.serviceState.connected) {
+                    val response = if (shouldTryProxy) {
                         try {
                             executeRequest(ua, useProxy = true)
                         } catch (proxyError: Throwable) {
@@ -439,12 +444,11 @@ object RawUpdater : GroupUpdater() {
     }
 
     @Suppress("UNCHECKED_CAST")
-
-    suspend fun parseRaw(text: String, fileName: String = ""): List<AbstractBean>? {
+    suspend fun parseRaw(text: String, fileName: String = "", depth: Int = 0): List<AbstractBean>? {
 
         val proxies = mutableListOf<AbstractBean>()
 
-        if (text.contains("proxies:")) {
+        if (text.contains("proxies:") || text.contains("\"proxies\":")) {
 
             // clash & meta
 
@@ -1042,14 +1046,33 @@ object RawUpdater : GroupUpdater() {
             if (!jsonProxies.isNullOrEmpty()) {
                 return jsonProxies
             }
+            if (depth < 2 && json is JSONObject) {
+                for (wrapperKey in listOf("data", "result", "sub", "content")) {
+                    val innerText = json.optString(wrapperKey).trim()
+                    if (innerText.isNotEmpty() && innerText != text) {
+                        val innerParsed = parseRaw(innerText, fileName, depth + 1)
+                        if (!innerParsed.isNullOrEmpty()) {
+                            return innerParsed
+                        }
+                    }
+                }
+            }
         } catch (ignored: Exception) {
         }
 
         try {
             val base64Decoded = text.decodeBase64UrlSafe()
-            val parsed = parseProxies(base64Decoded)
-            if (!parsed.isNullOrEmpty()) {
-                return parsed
+            if (base64Decoded.isNotBlank() && base64Decoded != text) {
+                if (depth < 2) {
+                    val recursiveParsed = parseRaw(base64Decoded, fileName, depth + 1)
+                    if (!recursiveParsed.isNullOrEmpty()) {
+                        return recursiveParsed
+                    }
+                }
+                val parsed = parseProxies(base64Decoded)
+                if (!parsed.isNullOrEmpty()) {
+                    return parsed
+                }
             }
         } catch (ignored: Exception) {
         }
@@ -1093,6 +1116,12 @@ object RawUpdater : GroupUpdater() {
 
                 json.has("remote_addr") -> {
                     return listOf(json.parseTrojanGo())
+                }
+
+                json.has("servers") -> {
+                    json.optJSONArray("servers")?.filterIsInstance<JSONObject>()?.forEach {
+                        proxies.addAll(parseJSON(it))
+                    }
                 }
 
                 json.has("outbounds") || json.has("endpoints") -> {

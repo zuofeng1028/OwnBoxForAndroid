@@ -26,8 +26,8 @@ class UserAgentPreference
     companion object {
         val PRESETS = listOf(
             "默认 (使用全局默认)",
-            "sing-box/1.15.0",
             "NekoBox/Android/1.4.2 (Prefer ClashMeta Format)",
+            "sing-box/1.15.0",
             "sing-box/1.14",
             "sing-box/1.14.0",
             "ClashMeta",

@@ -29,11 +29,13 @@ class SubscriptionUserAgentPreference @JvmOverloads constructor(
 
     companion object {
         val PRESETS = listOf(
-            "sing-box/1.15.0",
             "NekoBox/Android/1.4.2 (Prefer ClashMeta Format)",
-            "Singbox/1.14",
+            "ClashMetaForAndroid/2.11.5.Meta",
             "clash-meta",
+            "v2rayNG/1.9.39",
             "v2rayN/7.8.2",
+            "sing-box/1.15.0",
+            "Singbox/1.14",
             "sing-box/1.14.0",
             "Throne/1.0.0",
             "NekoBox/Android/1.3.1 (sing-box v1.14.0)",

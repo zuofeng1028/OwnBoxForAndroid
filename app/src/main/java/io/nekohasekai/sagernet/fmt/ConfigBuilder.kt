@@ -1368,6 +1368,14 @@ fun buildConfig(
                     effectivePackages.add("com.xiaomi.providers.downloads")
                     effectivePackages.add("com.google.android.gms")
                 }
+                val officialTelegramPackages = setOf(
+                    "org.telegram.messenger",
+                    "org.telegram.messenger.web",
+                    "org.telegram.messenger.beta"
+                )
+                if (effectivePackages.any { it in officialTelegramPackages }) {
+                    effectivePackages.addAll(officialTelegramPackages)
+                }
                 val uidList = effectivePackages.mapNotNull {
                     if (!isVPN) {
                         Toast.makeText(
@@ -1376,7 +1384,9 @@ fun buildConfig(
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    PackageCache[it]?.takeIf { uid -> uid >= 1000 }
+                    (PackageCache[it] ?: runCatching {
+                        SagerNet.application.packageManager.getApplicationInfo(it, 0).uid
+                    }.getOrNull())?.takeIf { uid -> uid >= 1000 }
                 }.toHashSet().toList()
                 val ruleSets = mutableListOf<RuleSet>()
 
@@ -1813,7 +1823,7 @@ fun buildConfig(
                 action = "hijack-dns"
             })
 
-            // 1.5. Telegram 官方数据中心（DC 1~5）及核心媒体 CDN 纯 IP 直连通道（跳过嗅探，直达主代理出站，杜绝 100ms~300ms 首包死等与 MTProto 读超时断流）
+            // Telegram 官方数据中心（DC 1~5）及核心媒体 CDN 纯 IP 段
             val telegramDcIps = listOf(
                 "91.108.4.0/22",
                 "91.108.8.0/22",
@@ -1825,16 +1835,14 @@ fun buildConfig(
                 "2001:b88::/32",
                 "2001:67c:4e8::/48"
             )
-            topRouteRules.add(Rule_DefaultOptions().apply {
-                ip_cidr = telegramDcIps
-                outbound = mainProxyTag
-            })
 
             // 2. sing-box 1.13：sniff（嗅探域名以供后续分流规则匹配）
-            // 显式指定 timeout = "100ms" 与 sniffer = ["tls", "http", "quic"]，
-            // 消除非 TLS 私有二进制流被内核默认阻塞 300ms 造成多路并发文件上传/下载卡死
+            // 显式指定 timeout = "100ms" 与 sniffer = ["tls", "http", "quic"]，并通过 ip_cidr + invert 跳过 Telegram 纯 IP MTProto 流量嗅探，
+            // 既杜绝 100ms~300ms 首包等待与断流，又不拦截用户自定义的 Telegram 应用/节点分流规则
             if (needSniff) {
                 topRouteRules.add(Rule_DefaultOptions().apply {
+                    ip_cidr = telegramDcIps
+                    invert = true
                     action = "sniff"
                     timeout = "100ms"
                     sniffer = listOf("tls", "http", "quic")
@@ -1901,6 +1909,13 @@ fun buildConfig(
             })
 
             route.rules.addAll(0, topRouteRules)
+
+            // Telegram 官方数据中心（DC 1~5）兜底规则：置于所有用户自定义分流规则之后，
+            // 确保用户为 Telegram 配置的指定节点规则优先命中，未配置时兜底走主代理
+            route.rules.add(Rule_DefaultOptions().apply {
+                ip_cidr = telegramDcIps
+                outbound = mainProxyTag
+            })
 
             if (DataStore.bypassLanInCore) {
                 route.rules.add(Rule_DefaultOptions().apply {

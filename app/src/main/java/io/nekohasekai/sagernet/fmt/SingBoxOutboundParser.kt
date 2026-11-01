@@ -309,6 +309,17 @@ private fun StandardV2RayBean.applySingBoxTransport(json: JSONObject) {
             host = transport.getStr("host") ?: ""
             path = transport.getStr("path") ?: ""
         }
+
+        "xhttp", "splithttp" -> {
+            type = "xhttp"
+            host = transport.optJSONArray("host")?.toStringList()?.joinToString(",")
+                ?: transport.getStr("host") ?: ""
+            path = transport.getStr("path") ?: ""
+            xhttpMode = normalizeXhttpMode(transport.getStr("mode"))
+            transport.optJSONObject("extra")?.let {
+                xhttpExtra = it.toString()
+            }
+        }
     }
 }
 

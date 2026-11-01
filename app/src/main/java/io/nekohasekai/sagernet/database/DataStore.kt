@@ -202,6 +202,13 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var hideUnavailableProfiles by configurationStore.boolean(Key.HIDE_UNAVAILABLE_PROFILES) { false }
 
     fun migrateSubscriptionUserAgents(targetUa: String? = null, forceAll: Boolean = false) {
+        val compatDefaultUa = "NekoBox/Android/1.4.2 (Prefer ClashMeta Format)"
+        if (targetUa == null && !forceAll) {
+            val storedDefault = configurationStore.getString(Key.DEFAULT_SUBSCRIPTION_USER_AGENT, "")
+            if (storedDefault == "sing-box/1.15.0") {
+                configurationStore.putString(Key.DEFAULT_SUBSCRIPTION_USER_AGENT, compatDefaultUa)
+            }
+        }
         val newUa = targetUa?.takeIf { it.isNotBlank() } ?: defaultSubscriptionUserAgent
         try {
             val groupDao = SagerDatabase.groupDao
@@ -211,7 +218,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
                 val sub = group.subscription ?: continue
                 if (sub.lockUserAgent == true) continue
                 val ua = sub.customUserAgent
-                if (forceAll || ua.isNullOrBlank()) {
+                if (forceAll || ua.isNullOrBlank() || (targetUa == null && ua == "sing-box/1.15.0")) {
                     sub.customUserAgent = newUa
                     groupDao.updateGroup(group)
                     changed = true

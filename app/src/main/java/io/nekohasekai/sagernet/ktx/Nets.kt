@@ -11,11 +11,19 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 /**
- * 内部 HTTP（订阅/资产/版本检查）经 box 默认 outbound 拨号
- *   （VPN 应用自身流量默认不进 tun，直连/h3 会绕过节点）
+ * 内部 HTTP（订阅/资产/版本检查）优先经 mixedPort SOCKS5 代理拨号（跨主进程与 :bg 进程通用）；
+ * 当禁用混合入站（纯 TUN）时回退至 tryBoxOutbound。
  */
 fun HTTPClient.tryProxyOutbound() {
-    tryBoxOutbound()
+    if (!io.nekohasekai.sagernet.database.DataStore.mixedInboundDisabled) {
+        trySocks5(
+            io.nekohasekai.sagernet.database.DataStore.mixedPort,
+            io.nekohasekai.sagernet.database.DataStore.mixedInboundUser,
+            io.nekohasekai.sagernet.database.DataStore.mixedInboundPass
+        )
+    } else {
+        tryBoxOutbound()
+    }
 }
 
 fun linkBuilder() = HttpUrl.Builder().scheme("https")

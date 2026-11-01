@@ -21,6 +21,7 @@ import moe.matsuri.nb4a.proxy.anytls.parseAnytls
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -116,16 +117,20 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
         for (s in schemes) {
             var idx = line.indexOf(s)
             while (idx >= 0) {
-                indices.add(idx)
+                // 防止 vless:// 或 vmess:// 内部的 "ss://" 被误判为独立链接起点
+                val isSubSchemeMatch = idx > 0 && (line[idx - 1].isLetterOrDigit() || line[idx - 1] == '-' || line[idx - 1] == '+')
+                if (!isSubSchemeMatch) {
+                    indices.add(idx)
+                }
                 idx = line.indexOf(s, idx + s.length)
             }
         }
-        if (indices.size <= 1) return listOf(line)
-        indices.sort()
+        val uniqueIndices = indices.distinct().sorted()
+        if (uniqueIndices.size <= 1) return listOf(line)
         val result = mutableListOf<String>()
-        for (i in indices.indices) {
-            val start = indices[i]
-            val end = if (i + 1 < indices.size) indices[i + 1] else line.length
+        for (i in uniqueIndices.indices) {
+            val start = uniqueIndices[i]
+            val end = if (i + 1 < uniqueIndices.size) uniqueIndices[i + 1] else line.length
             val sub = line.substring(start, end).trim()
             if (sub.isNotBlank()) result.add(sub)
         }
@@ -165,6 +170,26 @@ suspend fun parseProxies(text: String): List<AbstractBean> {
                 Logs.w(it)
             }
         } else if (matches("(http|https)://.*".toRegex())) {
+            val parsedHttpUrl = runCatching { this.toHttpUrlOrNull() }.getOrNull()
+            val isLikelySubscriptionUrl = parsedHttpUrl != null &&
+                (parsedHttpUrl.encodedPath != "/" || parsedHttpUrl.querySize > 0) &&
+                parsedHttpUrl.username.isEmpty() &&
+                parsedHttpUrl.password.isEmpty()
+
+            if (isLikelySubscriptionUrl) {
+                if (isSingleLink) {
+                    val clashUrl = HttpUrl.Builder()
+                        .scheme("https")
+                        .host("install-config")
+                        .addQueryParameter("url", this)
+                        .build()
+                        .toString()
+                        .replaceFirst("https://", "clash://")
+                    throw SubscriptionFoundException(clashUrl)
+                }
+                return
+            }
+
             Logs.d("Try parse http link: $this")
             runCatching {
                 entities.add(parseHttp(this))
