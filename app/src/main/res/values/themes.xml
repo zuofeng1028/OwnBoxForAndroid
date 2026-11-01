@@ -55,6 +55,9 @@
         <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
         <item name="appBarLayoutStyle">@style/Widget.SagerNet.AppBarLayout</item>
         <item name="toolbarStyle">@style/Widget.SagerNet.Toolbar</item>
+        <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton</item>
+        <item name="actionOverflowButtonStyle">@style/Widget.SagerNet.ActionOverflowButton</item>
+        <item name="toolbarNavigationButtonStyle">@style/Widget.SagerNet.ToolbarNavigationButton</item>
 
         <!-- MD3 Tab 默认样式（高对比、沉浸底色、首字母大写） -->
         <item name="tabStyle">@style/Widget.SagerNet.TabLayout</item>
@@ -276,15 +279,19 @@
     </style>
 
     <style name="Widget.SagerNet.ActionButton" parent="Widget.AppCompat.ActionButton">
-        <item name="android:minWidth">28dp</item>
-        <item name="android:paddingStart">2dp</item>
-        <item name="android:paddingEnd">2dp</item>
+        <item name="android:minWidth">32dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
     </style>
 
     <style name="Widget.SagerNet.ActionOverflowButton" parent="Widget.AppCompat.ActionButton.Overflow">
-        <item name="android:minWidth">28dp</item>
-        <item name="android:paddingStart">2dp</item>
-        <item name="android:paddingEnd">2dp</item>
+        <item name="android:minWidth">32dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
     </style>
 
     <style name="Widget.SagerNet.ToolbarNavigationButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">

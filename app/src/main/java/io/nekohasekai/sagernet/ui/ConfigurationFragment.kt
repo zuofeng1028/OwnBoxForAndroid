@@ -485,6 +485,12 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private var isAdjustingMenuSpacing = false
 
+    private val actionMenuLayoutListener = View.OnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+        if (v is ActionMenuView) {
+            applyActionMenuSpacing(v)
+        }
+    }
+
     private fun adjustToolbarActionButtons() {
         if (!isToolbarInitialized) return
         toolbar.contentInsetStartWithNavigation = 0
@@ -512,10 +518,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 child.clipChildren = false
                 child.clipToPadding = false
                 child.setPadding(0, 0, 0, 0)
+                child.removeOnLayoutChangeListener(actionMenuLayoutListener)
+                child.addOnLayoutChangeListener(actionMenuLayoutListener)
                 applyActionMenuSpacing(child)
-                child.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-                    applyActionMenuSpacing(child)
-                }
             }
         }
         toolbar.post {
@@ -528,6 +533,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     child.clipChildren = false
                     child.clipToPadding = false
                     child.setPadding(0, 0, 0, 0)
+                    child.removeOnLayoutChangeListener(actionMenuLayoutListener)
+                    child.addOnLayoutChangeListener(actionMenuLayoutListener)
                     applyActionMenuSpacing(child)
                 }
             }
@@ -536,19 +543,18 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private fun applyActionMenuSpacing(menuView: ActionMenuView) {
         if (isAdjustingMenuSpacing) return
-        val pad = dp2px(2)
-        val minW = dp2px(28)
+        val minW = dp2px(32)
         val gap = dp2px(2)
-        val endMargin = dp2px(8)
+        val endMargin = dp2px(6)
 
         menuView.clipChildren = false
         menuView.clipToPadding = false
-        menuView.minimumWidth = dp2px(160)
+        menuView.minimumWidth = dp2px(174)
 
         try {
             val cellField = ActionMenuView::class.java.getDeclaredField("mMinCellSize")
             cellField.isAccessible = true
-            cellField.setInt(menuView, minW + gap)
+            cellField.setInt(menuView, minW)
         } catch (_: Throwable) {}
         try {
             val padField = ActionMenuView::class.java.getDeclaredField("mGeneratedItemPadding")
@@ -556,15 +562,59 @@ class ConfigurationFragment @JvmOverloads constructor(
             padField.setInt(menuView, 0)
         } catch (_: Throwable) {}
 
+        val searchItem = if (isToolbarInitialized) toolbar.menu.findItem(R.id.action_search) else null
+        val sv = searchItem?.actionView as? SearchView
+        val isSearching = sv != null && !sv.isIconified
+
         for (j in 0 until menuView.childCount) {
             val item = menuView.getChildAt(j)
-            try {
-                val field = item.javaClass.getDeclaredField("mMinWidth")
-                field.isAccessible = true
-                field.setInt(item, minW)
-            } catch (_: Throwable) {}
-            item.minimumWidth = minW
-            item.setPadding(pad, 0, pad, 0)
+            if (item is ViewGroup) {
+                item.clipChildren = false
+                item.clipToPadding = false
+            }
+            if (item is SearchView) {
+                item.setPadding(0, 0, 0, 0)
+                val sBar = item.findViewById<View>(androidx.appcompat.R.id.search_bar)
+                (sBar as? ViewGroup)?.apply {
+                    clipChildren = false
+                    clipToPadding = false
+                }
+                sBar?.setPadding(0, 0, 0, 0)
+                (sBar?.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                    if (lp.leftMargin != 0 || lp.rightMargin != 0) {
+                        lp.leftMargin = 0
+                        lp.rightMargin = 0
+                        sBar.layoutParams = lp
+                    }
+                }
+                val sBtn = item.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+                sBtn?.apply {
+                    minimumWidth = minW
+                    maxWidth = minW
+                    setPadding(0, 0, 0, 0)
+                    scaleType = ImageView.ScaleType.CENTER
+                    (layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                        if (lp.width != minW || lp.leftMargin != 0 || lp.rightMargin != 0) {
+                            lp.width = minW
+                            lp.leftMargin = 0
+                            lp.rightMargin = 0
+                            layoutParams = lp
+                        }
+                    }
+                }
+                if (!isSearching) {
+                    item.minimumWidth = minW
+                    item.maxWidth = minW
+                }
+            } else {
+                try {
+                    val field = item.javaClass.getDeclaredField("mMinWidth")
+                    field.isAccessible = true
+                    field.setInt(item, minW)
+                } catch (_: Throwable) {}
+                item.minimumWidth = minW
+                item.setPadding(0, 0, 0, 0)
+            }
             (item.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
                 if (lp.leftMargin != 0 || lp.rightMargin != 0) {
                     lp.leftMargin = 0
@@ -574,11 +624,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
-        val searchItem = if (isToolbarInitialized) toolbar.menu.findItem(R.id.action_search) else null
-        val sv = searchItem?.actionView as? SearchView
-        val isSearching = sv != null && !sv.isIconified
-
-        if (!isSearching && menuView.width > 0) {
+        if (!isSearching && menuView.width > 0 && menuView.height > 0) {
             isAdjustingMenuSpacing = true
             try {
                 val visibleChildren = mutableListOf<View>()
@@ -589,13 +635,22 @@ class ConfigurationFragment @JvmOverloads constructor(
                     }
                 }
                 if (visibleChildren.isNotEmpty()) {
+                    val wSpec = View.MeasureSpec.makeMeasureSpec(minW, View.MeasureSpec.EXACTLY)
+                    val hSpec = View.MeasureSpec.makeMeasureSpec(menuView.height, View.MeasureSpec.EXACTLY)
                     var currentRight = menuView.width - endMargin
                     for (i in visibleChildren.size - 1 downTo 0) {
                         val child = visibleChildren[i]
                         val left = currentRight - minW
                         val top = 0
                         val bottom = menuView.height
+                        child.measure(wSpec, hSpec)
                         child.layout(left, top, currentRight, bottom)
+                        if (child is SearchView) {
+                            val sBar = child.findViewById<View>(androidx.appcompat.R.id.search_bar)
+                            val sBtn = child.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+                            sBar?.layout(0, 0, minW, bottom)
+                            sBtn?.layout(0, 0, minW, bottom)
+                        }
                         currentRight = left - gap
                     }
                 }
@@ -653,7 +708,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun updateSearchMaxWidth(searchView: SearchView) {
         if (!isToolbarInitialized) return
         if (searchView.isIconified) {
-            searchView.maxWidth = dp2px(36)
+            searchView.maxWidth = dp2px(32)
             return
         }
         val tbWidth = toolbar.width
@@ -666,7 +721,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             toolbar.post {
                 if (isAdded && !isDetached && isToolbarInitialized) {
                     if (searchView.isIconified) {
-                        searchView.maxWidth = dp2px(36)
+                        searchView.maxWidth = dp2px(32)
                         return@post
                     }
                     val postW = toolbar.width
@@ -745,8 +800,33 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+        val btnW = dp2px(32)
+        searchView.clipChildren = false
+        searchView.clipToPadding = false
+        searchView.setPadding(0, 0, 0, 0)
+        val searchBar = searchView.findViewById<View>(androidx.appcompat.R.id.search_bar)
+        (searchBar as? ViewGroup)?.apply {
+            clipChildren = false
+            clipToPadding = false
+        }
+        searchBar?.setPadding(0, 0, 0, 0)
+        (searchBar?.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            lp.leftMargin = 0
+            lp.rightMargin = 0
+            searchBar.layoutParams = lp
+        }
         val searchBtn = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
         searchBtn?.setColorFilter(textColor)
+        searchBtn?.minimumWidth = btnW
+        searchBtn?.maxWidth = btnW
+        searchBtn?.setPadding(0, 0, 0, 0)
+        searchBtn?.scaleType = ImageView.ScaleType.CENTER
+        (searchBtn?.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+            lp.width = btnW
+            lp.leftMargin = 0
+            lp.rightMargin = 0
+            searchBtn.layoutParams = lp
+        }
         val magBtn = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
         magBtn?.setColorFilter(textColor)
     }
@@ -955,7 +1035,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                             sv.maxWidth = targetW
                         }
                     } else {
-                        sv.maxWidth = dp2px(36)
+                        sv.maxWidth = dp2px(32)
                     }
                 }
             }
@@ -4371,8 +4451,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             val searchItem = toolbar.menu.findItem(R.id.action_search)
             searchItem?.collapseActionView()
             searchView.clearFocus()
-            searchView.maxWidth = dp2px(36)
-            adjustToolbarActionButtons()
+            searchView.maxWidth = dp2px(32)
 
             val cancelContext = requireContext()
             val primaryColor = when {
@@ -4405,12 +4484,14 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
 
             tintMenuIcons(toolbar.menu, primaryColor)
+            adjustToolbarActionButtons()
 
             val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
             imm?.hideSoftInputFromWindow(searchView.windowToken, 0)
             updateToolbarMenuTitles()
             toolbar.post {
                 toolbar.requestLayout()
+                adjustToolbarActionButtons()
             }
         } finally {
             isCancelingSearch = false
