@@ -488,15 +488,17 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun adjustToolbarActionButtons() {
         if (!isToolbarInitialized) return
         toolbar.contentInsetStartWithNavigation = 0
-        toolbar.setContentInsetsRelative(0, dp2px(4))
+        toolbar.setContentInsetsRelative(0, 0)
         toolbar.title = null
         toolbar.setBackgroundColor(Color.TRANSPARENT)
+        toolbar.clipChildren = false
+        toolbar.clipToPadding = false
 
         val titleView = view?.findViewById<TextView>(R.id.toolbar_title_view)
         titleView?.let { tv ->
             tv.text = getString(R.string.app_name)
             tv.visibility = View.VISIBLE
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             tv.typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
             tv.includeFontPadding = false
             tv.setOnClickListener {
@@ -507,6 +509,8 @@ class ConfigurationFragment @JvmOverloads constructor(
         for (i in 0 until toolbar.childCount) {
             val child = toolbar.getChildAt(i)
             if (child is ActionMenuView) {
+                child.clipChildren = false
+                child.clipToPadding = false
                 child.setPadding(0, 0, 0, 0)
                 applyActionMenuSpacing(child)
                 child.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -521,6 +525,8 @@ class ConfigurationFragment @JvmOverloads constructor(
             for (i in 0 until toolbar.childCount) {
                 val child = toolbar.getChildAt(i)
                 if (child is ActionMenuView) {
+                    child.clipChildren = false
+                    child.clipToPadding = false
                     child.setPadding(0, 0, 0, 0)
                     applyActionMenuSpacing(child)
                 }
@@ -530,19 +536,24 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     private fun applyActionMenuSpacing(menuView: ActionMenuView) {
         if (isAdjustingMenuSpacing) return
-        val pad = dp2px(3)
-        val minW = dp2px(34)
+        val pad = dp2px(2)
+        val minW = dp2px(28)
         val gap = dp2px(2)
+        val endMargin = dp2px(8)
+
+        menuView.clipChildren = false
+        menuView.clipToPadding = false
+        menuView.minimumWidth = dp2px(160)
 
         try {
             val cellField = ActionMenuView::class.java.getDeclaredField("mMinCellSize")
             cellField.isAccessible = true
-            cellField.setInt(menuView, minW)
+            cellField.setInt(menuView, minW + gap)
         } catch (_: Throwable) {}
         try {
             val padField = ActionMenuView::class.java.getDeclaredField("mGeneratedItemPadding")
             padField.isAccessible = true
-            padField.setInt(menuView, dp2px(1))
+            padField.setInt(menuView, 0)
         } catch (_: Throwable) {}
 
         for (j in 0 until menuView.childCount) {
@@ -553,7 +564,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 field.setInt(item, minW)
             } catch (_: Throwable) {}
             item.minimumWidth = minW
-            item.setPadding(pad, item.paddingTop, pad, item.paddingBottom)
+            item.setPadding(pad, 0, pad, 0)
             (item.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
                 if (lp.leftMargin != 0 || lp.rightMargin != 0) {
                     lp.leftMargin = 0
@@ -570,14 +581,22 @@ class ConfigurationFragment @JvmOverloads constructor(
         if (!isSearching && menuView.width > 0) {
             isAdjustingMenuSpacing = true
             try {
-                var rightEdge = menuView.width - menuView.paddingEnd
-                for (i in menuView.childCount - 1 downTo 0) {
+                val visibleChildren = mutableListOf<View>()
+                for (i in 0 until menuView.childCount) {
                     val child = menuView.getChildAt(i)
                     if (child.visibility != View.GONE) {
-                        val w = minW
-                        val left = rightEdge - w
-                        child.layout(left, child.top, rightEdge, child.bottom)
-                        rightEdge = left - gap
+                        visibleChildren.add(child)
+                    }
+                }
+                if (visibleChildren.isNotEmpty()) {
+                    var currentRight = menuView.width - endMargin
+                    for (i in visibleChildren.size - 1 downTo 0) {
+                        val child = visibleChildren[i]
+                        val left = currentRight - minW
+                        val top = 0
+                        val bottom = menuView.height
+                        child.layout(left, top, currentRight, bottom)
+                        currentRight = left - gap
                     }
                 }
             } finally {
