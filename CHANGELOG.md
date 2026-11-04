@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.16 预览版
+
+* 不限量订阅分组隐藏流量进度条，优化紧凑排版与展示逻辑
+
 # OwnBox for Android v26.11.3.15 预览版
 
 * 优化分组列表卡片上下边距与排版紧凑度，贴合直观紧凑视觉体验

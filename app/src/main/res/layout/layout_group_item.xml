@@ -8,8 +8,8 @@
     android:layout_height="wrap_content"
     android:layout_marginStart="8dp"
     android:layout_marginEnd="8dp"
-    android:layout_marginTop="3dp"
-    android:layout_marginBottom="3dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
     app:cardCornerRadius="@dimen/profile_card_corner_radius"
     app:cardElevation="0dp"
     app:strokeWidth="@dimen/card_stroke_width"
@@ -36,9 +36,9 @@
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingTop="8dp"
+            android:paddingTop="12dp"
             android:paddingEnd="6dp"
-            android:paddingBottom="0dp">
+            android:paddingBottom="2dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -75,22 +75,22 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/edit"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/edit"
                 android:focusable="true"
-                android:padding="5dp"
+                android:padding="10dp"
                 app:srcCompat="@drawable/ic_image_edit"
                 app:tint="?android:attr/textColorSecondary" />
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/options"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:focusable="true"
-                android:padding="5dp"
+                android:padding="10dp"
                 app:srcCompat="@drawable/ic_baseline_more_vert_24"
                 app:tint="?android:attr/textColorSecondary" />
 
@@ -103,12 +103,12 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
             android:max="100"
             android:visibility="gone"
-            app:trackCornerRadius="2dp"
-            app:trackThickness="4dp"
+            app:trackCornerRadius="3dp"
+            app:trackThickness="5dp"
             tools:progress="35"
             tools:visibility="visible" />
 
@@ -120,8 +120,7 @@
             android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingEnd="12dp"
-            android:paddingBottom="8dp"
-            android:paddingTop="1dp">
+            android:paddingBottom="12dp">
 
             <TextView
                 android:id="@+id/group_status"
@@ -145,18 +144,14 @@
                 android:id="@+id/group_update"
                 style="?attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
-                android:layout_height="26dp"
+                android:layout_height="36dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="0dp"
-                android:paddingBottom="0dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:text="@string/group_update"
                 android:textColor="?android:attr/textColorSecondary"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 

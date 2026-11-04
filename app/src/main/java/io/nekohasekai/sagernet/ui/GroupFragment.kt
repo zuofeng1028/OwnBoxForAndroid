@@ -510,8 +510,8 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 groupUser.setTextColor(secondaryColor)
             }
 
-            groupTrafficProgress.isVisible = true
             if (totalBytes > 0L) {
+                groupTrafficProgress.isVisible = true
                 val percent = ((usedBytes.toDouble() / totalBytes.toDouble()) * 100).toInt().coerceIn(0, 100)
                 groupTrafficProgress.progress = percent
                 if (isExpired || percent >= 90) {
@@ -520,12 +520,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     groupTrafficProgress.setIndicatorColor(itemView.context.getColorAttr(R.attr.colorPrimary))
                 }
             } else {
-                groupTrafficProgress.progress = 0
-                if (isExpired) {
-                    groupTrafficProgress.setIndicatorColor(Color.parseColor("#E53935"))
-                } else {
-                    groupTrafficProgress.setIndicatorColor(itemView.context.getColorAttr(R.attr.colorPrimary))
-                }
+                groupTrafficProgress.isGone = true
             }
 
             val usageStr = if (totalBytes > 0L) {
@@ -570,7 +565,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
             val isDisabled = DataStore.isGroupDisabled(proxyGroup.id)
             editButton.isVisible = true
-            updateButton.isVisible = proxyGroup.type == GroupType.SUBSCRIPTION
+            updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
             groupName.text = if (isDisabled) "${proxyGroup.displayName()} ${getString(R.string.group_disabled_status)}" else proxyGroup.displayName()
             itemView.alpha = if (isDisabled) 0.6f else 1.0f
 
@@ -618,7 +613,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 editButton.isGone = true
             } else {
                 subscriptionUpdateProgress.isVisible = false
-                updateButton.isVisible = proxyGroup.type == GroupType.SUBSCRIPTION
+                updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
                 editButton.isVisible = true
             }
 
