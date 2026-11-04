@@ -259,7 +259,8 @@ class RuleSetPickerActivity : ThemedActivity() {
                         }
                         catalog.urlOf(entry) != null -> {
                             val normalized = entry.replace(':', '-')
-                            Row(normalized, RuleSets.source(catalog.urlOf(entry)!), Kind.KNOWN)
+                            val url = catalog.urlOf(entry) ?: ""
+                            Row(normalized, RuleSets.source(url), Kind.KNOWN)
                         }
                         RuleSets.isUrl(entry) -> Row(entry, RuleSets.source(entry), Kind.URL)
                         else -> Row(entry, "", Kind.UNKNOWN)
