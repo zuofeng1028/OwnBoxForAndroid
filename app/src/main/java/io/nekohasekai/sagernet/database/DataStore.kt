@@ -255,29 +255,33 @@ object DataStore : OnPreferenceDataStoreChangeListener {
                 for (entity in allProfiles) {
                     try {
                         val bean = entity.requireBean()
+                        var modified = false
                         when (bean) {
                             is ShadowsocksBean -> {
                                 val normalized = io.nekohasekai.sagernet.fmt.shadowsocks.normalizeShadowsocksCipher(bean.method)
                                 if (bean.method != normalized) {
                                     bean.method = normalized
+                                    modified = true
                                 }
                             }
                             is StandardV2RayBean -> {
                                 if (bean.type == "xhttp" && bean.xhttpMode.isNullOrBlank()) {
                                     bean.xhttpMode = "auto"
+                                    modified = true
                                 }
                             }
                         }
-                        // Re-serialize with new format to guarantee full compatibility with current version
-                        entity.putBean(bean)
-                        toUpdate.add(entity)
+                        if (modified && bean.serverAddress.isNotBlank() && bean.serverAddress != "127.0.0.1") {
+                            entity.putBean(bean)
+                            toUpdate.add(entity)
+                        }
                     } catch (t: Throwable) {
                         Logs.w("Skipping unreadable profile during upgrade migration: ${entity.id}", t)
                     }
                 }
                 if (toUpdate.isNotEmpty()) {
                     proxyDao.updateProxy(toUpdate)
-                    Logs.i("Upgraded and re-serialized ${toUpdate.size} profiles on app update")
+                    Logs.i("Migrated and updated ${toUpdate.size} modified profiles on app update")
                 }
                 configurationStore.putInt("last_app_version_code", currentCode)
             } catch (e: Throwable) {

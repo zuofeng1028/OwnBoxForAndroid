@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.ktx.dp2px
@@ -42,7 +43,11 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_profile_select),
             selectedIds.addAll(initialSelected.toList())
         }
 
-        val bottomBar = findViewById<View>(R.id.bottom_bar)
+        val bottomBar = findViewById<MaterialCardView>(R.id.bottom_bar)
+        val bottomBarContent = findViewById<View>(R.id.bottom_bar_content)
+        val fragmentHolder = findViewById<View>(R.id.fragment_holder)
+        val rootLayout = findViewById<View>(R.id.profile_select_root) ?: findViewById(android.R.id.content)
+
         if (isMultiSelect) {
             bottomBar?.isVisible = true
             updateBottomBar()
@@ -56,21 +61,38 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_profile_select),
             bottomBar?.isVisible = false
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
-            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+        fun getNavigationBarHeightFallback(): Int {
+            return runCatching {
+                val resId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+                if (resId > 0) resources.getDimensionPixelSize(resId) else 0
+            }.getOrDefault(0)
+        }
+
+        fun applyBottomInsets(navBottom: Int) {
             if (isMultiSelect && bottomBar != null) {
-                bottomBar.updatePadding(bottom = navBars.bottom)
-                findViewById<View>(R.id.fragment_holder)?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    bottomMargin = dp2px(64) + navBars.bottom
+                bottomBar.setContentPadding(0, 0, 0, navBottom)
+                bottomBarContent?.updatePadding(bottom = navBottom)
+                fragmentHolder?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = dp2px(64) + navBottom
                 }
             } else {
-                findViewById<View>(R.id.fragment_holder)?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomBar?.setContentPadding(0, 0, 0, 0)
+                bottomBarContent?.updatePadding(bottom = 0)
+                fragmentHolder?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     bottomMargin = 0
                 }
             }
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { _, insets ->
+            val navBars = insets.getInsets(
+                WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.systemBars()
+            )
+            val navBottom = if (navBars.bottom > 0) navBars.bottom else getNavigationBarHeightFallback()
+            applyBottomInsets(navBottom)
             insets
         }
-        ViewCompat.requestApplyInsets(findViewById(android.R.id.content))
+        ViewCompat.requestApplyInsets(rootLayout)
 
         supportFragmentManager.beginTransaction()
             .replace(
