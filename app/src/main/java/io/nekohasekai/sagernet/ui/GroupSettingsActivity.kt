@@ -239,6 +239,10 @@ class GroupSettingsActivity(
             findPreference<SimpleMenuPreference>(Key.SUBSCRIPTION_FILTER_MODE)!!
         val subscriptionFilterRegex =
             findPreference<EditTextPreference>(Key.SUBSCRIPTION_FILTER_REGEX)!!
+        subscriptionFilterRegex.setOnBindEditTextListener { editText ->
+            editText.hint = getString(R.string.filter_regex_hint)
+            editText.setSingleLine(true)
+        }
 
         fun updateFilterMode(filterMode: Int = DataStore.subscriptionFilterMode) {
             subscriptionFilterRegex.isVisible = filterMode != SubscriptionFilterMode.DISABLED

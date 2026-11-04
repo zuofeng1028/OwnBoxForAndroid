@@ -393,6 +393,8 @@
     <string name="filter_include">包含</string>
     <string name="filter_exclude">排除</string>
     <string name="filter_regex">过滤（正则表达式）</string>
+    <string name="filter_regex_hint">香港|日本|美国</string>
+    <string name="filter_regex_dialog_message">按节点名称匹配，多个关键词用“|”分隔，例如：香港|日本|美国</string>
     <string name="raw">原始</string>
     <string name="update_settings">更新设置</string>
     <string name="auto_update">自动更新</string>

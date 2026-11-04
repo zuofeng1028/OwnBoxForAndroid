@@ -2,6 +2,9 @@
 <resources>
     <color name="fab_color_progress">@color/material_light_white</color>
     <color name="preference_simple_menu_background">#303030</color>
+    <color name="spinner_dropdown_bg">#2D2F33</color>
+    <color name="spinner_dropdown_stroke">#4B5563</color>
+    <color name="spinner_dropdown_arrow">#94A3B8</color>
     <!-- Material Design 3 全局色彩与层级系统 (夜间模式) -->
     <color name="md3_background">#121212</color>
     <color name="md3_surface">#1E1E1E</color>

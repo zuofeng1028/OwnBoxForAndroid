@@ -74,6 +74,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
+            app:dialogMessage="@string/filter_regex_dialog_message"
             app:icon="@drawable/ic_baseline_filter_list_24"
             app:key="subscriptionFilterRegex"
             app:title="@string/filter_regex"

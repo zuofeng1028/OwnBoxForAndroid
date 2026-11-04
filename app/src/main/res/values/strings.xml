@@ -500,6 +500,8 @@
     <string name="filter_include">Include</string>
     <string name="filter_exclude">Exclude</string>
     <string name="filter_regex">Filter (Regex)</string>
+    <string name="filter_regex_hint">HK|JP|US</string>
+    <string name="filter_regex_dialog_message">Match node names, separate keywords with "|", e.g. HK|JP|US</string>
     <string name="raw">Raw</string>
     <string name="update_settings">Update Settings</string>
     <string name="auto_update">Auto Update</string>

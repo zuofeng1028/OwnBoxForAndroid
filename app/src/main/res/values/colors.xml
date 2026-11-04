@@ -303,6 +303,9 @@
     <color name="color_route_config">#8E24AA</color>  <!-- 配置：紫色 -->
 
     <color name="preference_simple_menu_background">#FAFAFA</color>
+    <color name="spinner_dropdown_bg">#F2F4F7</color>
+    <color name="spinner_dropdown_stroke">#CBD5E1</color>
+    <color name="spinner_dropdown_arrow">#64748B</color>
 
     <!-- Material Design 3 全局色彩与层级系统 -->
     <color name="md3_background">#F4F5F7</color>
