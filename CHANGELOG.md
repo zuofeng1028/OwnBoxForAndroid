@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.19 预览版
+
+* 优化紧凑配置行仅展示延迟数值，默认启用紧凑分组卡片并精简外观设置
+
 # OwnBox for Android v26.11.3.18 预览版
 
 * 收窄主页置顶资产卡片高度，新增紧凑配置行与紧凑分组卡片外观选项

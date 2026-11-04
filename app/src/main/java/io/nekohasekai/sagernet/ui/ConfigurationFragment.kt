@@ -4226,20 +4226,13 @@ class ConfigurationFragment @JvmOverloads constructor(
                         when (proxyEntity.status) {
                             1 -> {
                                 val ping = proxyEntity.ping
-                                val bean = proxyEntity.requireBean()
-                                val flag = CountryFlagUtils.getFlag(bean.displayName())
-                                val pingStr = if (flag != null && !CountryFlagUtils.hasFlag(bean.displayName())) {
-                                    "$flag $ping ms"
-                                } else {
-                                    "$ping ms"
-                                }
                                 val color = when {
                                     ping <= 0 -> secondary
                                     ping < 300 -> requireContext().getColour(R.color.material_green_500)
                                     ping < 800 -> Color.parseColor("#FFA000")
                                     else -> requireContext().getColour(R.color.material_red_500)
                                 }
-                                appendPart(pingStr, color)
+                                appendPart("$ping ms", color)
                             }
                             2, 3 -> {
                                 appendPart(getString(R.string.unavailable), requireContext().getColour(R.color.material_red_500))
