@@ -109,6 +109,22 @@ class RuleSetCatalog(entries: List<Pair<String, String>>) {
          */
         fun resolveEntry(origEntry: String): Triple<String, Boolean, String> {
             val trimmed = origEntry.trim()
+            if (trimmed.startsWith("local:")) {
+                val pathOrName = trimmed.removePrefix("local:")
+                val rulesDir = File(SagerNet.application.getExternalFilesDir("rulesets") ?: SagerNet.application.filesDir, "rulesets")
+                val file = if (File(pathOrName).isAbsolute) File(pathOrName) else File(rulesDir, pathOrName)
+                val isIp = pathOrName.contains("geoip", ignoreCase = true) || pathOrName.contains("ip", ignoreCase = true)
+                val safeTag = "local-" + file.nameWithoutExtension.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+                return Triple(file.absolutePath, isIp, safeTag)
+            }
+            val rulesDir = File(SagerNet.application.getExternalFilesDir("rulesets") ?: SagerNet.application.filesDir, "rulesets")
+            val candidateFile = File(rulesDir, trimmed)
+            if (candidateFile.isFile || (File(trimmed).isAbsolute && File(trimmed).isFile)) {
+                val file = if (candidateFile.isFile) candidateFile else File(trimmed)
+                val isIp = file.name.contains("geoip", ignoreCase = true) || file.name.contains("ip", ignoreCase = true)
+                val safeTag = "local-" + file.nameWithoutExtension.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+                return Triple(file.absolutePath, isIp, safeTag)
+            }
             val catalog = current()
             catalog.urlOf(trimmed)?.let { url ->
                 val isIp = RuleSets.isIpEntry(trimmed, url)
@@ -132,7 +148,8 @@ class RuleSetCatalog(entries: List<Pair<String, String>>) {
                 val url = "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/sing/geo/geosite/$code.srs"
                 return Triple(url, false, normalized)
             }
-            throw IllegalArgumentException("Invalid rule-set entry: $origEntry")
+            val safeTag = "rs-" + kotlin.math.abs(trimmed.hashCode())
+            return Triple(trimmed, trimmed.contains("ip", ignoreCase = true), safeTag)
         }
 
         /**

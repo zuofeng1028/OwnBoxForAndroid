@@ -64,6 +64,15 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/rule_set_tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    app:tabGravity="fill"
+                    app:tabMode="fixed"
+                    app:tabIndicatorFullWidth="false" />
+
             </LinearLayout>
 
             <com.google.android.material.appbar.MaterialToolbar

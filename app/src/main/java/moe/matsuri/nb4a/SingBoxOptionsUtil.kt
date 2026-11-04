@@ -218,20 +218,32 @@ fun generateRemoteRuleSet(
     updateInterval: String,
     preferredTag: String? = null
 ): String {
+    val cleanUrl = if (url.startsWith("file://")) url.removePrefix("file://") else url
+    val localFile = java.io.File(cleanUrl)
+    val isLocal = localFile.isAbsolute && (localFile.exists() || cleanUrl.startsWith("/"))
     val tag = preferredTag?.takeIf { it.isNotBlank() } ?: run {
         val hashCode = kotlin.math.abs(url.hashCode())
         "ruleset-$hashCode"
     }
-    val normalizedInterval = io.nekohasekai.sagernet.route.RuleSets.normalizeUpdateInterval(updateInterval)
 
     if (ruleSets.none { it.tag == tag }) {
-        ruleSets.add(RuleSet().apply {
-            type = "remote"
-            this.tag = tag
-            format = "binary"
-            this.url = url
-            update_interval = normalizedInterval
-        })
+        if (isLocal) {
+            ruleSets.add(RuleSet().apply {
+                type = "local"
+                this.tag = tag
+                format = if (cleanUrl.endsWith(".json")) "source" else "binary"
+                path = cleanUrl
+            })
+        } else {
+            val normalizedInterval = io.nekohasekai.sagernet.route.RuleSets.normalizeUpdateInterval(updateInterval)
+            ruleSets.add(RuleSet().apply {
+                type = "remote"
+                this.tag = tag
+                format = "binary"
+                this.url = url
+                update_interval = normalizedInterval
+            })
+        }
     }
 
     return tag

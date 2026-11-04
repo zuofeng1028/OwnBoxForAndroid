@@ -26,6 +26,9 @@ import io.nekohasekai.sagernet.databinding.LayoutScannerBinding
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.deduplicateProxies
 import io.nekohasekai.sagernet.ktx.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -50,6 +53,18 @@ class ScannerActivity : ThemedActivity(),
         binding.ivPhotoLibrary.setOnClickListener {
             startFilesForResult(importCodeFile, "image/*")
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            binding.ivFlashlight.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = dp2px(32) + navBars.bottom
+            }
+            binding.ivPhotoLibrary.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = dp2px(32) + navBars.bottom
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
     }
 
     val importCodeFile = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {

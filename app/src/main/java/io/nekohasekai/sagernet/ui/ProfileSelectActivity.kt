@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
@@ -42,9 +45,6 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_profile_select),
         val bottomBar = findViewById<View>(R.id.bottom_bar)
         if (isMultiSelect) {
             bottomBar?.isVisible = true
-            findViewById<View>(R.id.fragment_holder)?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = dp2px(64)
-            }
             updateBottomBar()
             findViewById<MaterialButton>(R.id.btn_confirm)?.setOnClickListener {
                 setResult(RESULT_OK, Intent().apply {
@@ -55,6 +55,22 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_profile_select),
         } else {
             bottomBar?.isVisible = false
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            if (isMultiSelect && bottomBar != null) {
+                bottomBar.updatePadding(bottom = navBars.bottom)
+                findViewById<View>(R.id.fragment_holder)?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = dp2px(64) + navBars.bottom
+                }
+            } else {
+                findViewById<View>(R.id.fragment_holder)?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    bottomMargin = 0
+                }
+            }
+            insets
+        }
+        ViewCompat.requestApplyInsets(findViewById(android.R.id.content))
 
         supportFragmentManager.beginTransaction()
             .replace(

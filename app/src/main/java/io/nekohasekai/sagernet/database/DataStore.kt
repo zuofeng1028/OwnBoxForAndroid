@@ -172,6 +172,11 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var rulesGeositeUrl by configurationStore.string(Key.RULES_GEOSITE_URL) { "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db" }
     var rulesGeoipUrl by configurationStore.string(Key.RULES_GEOIP_URL) { "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db" }
     var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) { "0" } // 默认为0，不自动更新
+    var activeGeoipDb by configurationStore.string("active_geoip_db") { "geoip.db" }
+    var activeGeositeDb by configurationStore.string("active_geosite_db") { "geosite.db" }
+    fun getAssetUpdateUrl(fileName: String): String = configurationStore.getString("asset_url_$fileName", "")
+    fun setAssetUpdateUrl(fileName: String, url: String) = configurationStore.putString("asset_url_$fileName", url)
+    var customRuleSets by configurationStore.stringSet("custom_rule_sets") { emptySet() }
 
     // hopefully hashCode = mHandle doesn't change, currently this is true from KitKat to Nougat
     private val userIndex by lazy { Binder.getCallingUserHandle().hashCode() }

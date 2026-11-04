@@ -1289,5 +1289,17 @@
     <string name="notification_permission_allowed">Allowed</string>
     <string name="notification_permission_blocked">Blocked: the service notification and its buttons are hidden. Tap to allow.</string>
     <string name="notification_permission_rationale">OwnBox shows a notification while the VPN runs, with buttons to stop it and to switch servers. Allow notifications to see it.</string>
+    <string name="asset_set_active">Set as Active</string>
+    <string name="asset_active_badge">In Use</string>
+    <string name="asset_set_active_success">Set %1$s as active database</string>
+    <string name="asset_configure_update_url">Configure Update URL</string>
+    <string name="asset_update_url_hint">Enter direct download URL (http/https)</string>
+    <string name="rule_set_tab_all">All Builtin</string>
+    <string name="rule_set_tab_custom">My / Imported</string>
+    <string name="rule_set_tab_selected">Selected</string>
+    <string name="rule_set_import_success">Imported rule set: %1$s</string>
+    <string name="rule_set_local_source">Local rule set</string>
+    <string name="rule_set_custom_db_source">Local database</string>
+    <string name="rule_set_delete_confirm">Remove this custom rule set?</string>
 
 </resources>

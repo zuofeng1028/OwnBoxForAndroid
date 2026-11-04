@@ -1206,5 +1206,17 @@
     <string name="settings_appearance_sum">主题、界面与字体大小、语言、通知</string>
     <string name="ui_scale_settings_title">界面与字体大小</string>
     <string name="ui_scale_settings_summary">调节全局界面与字体比例、忽略系统大字体、分区自定义按钮/菜单/卡片大小</string>
+    <string name="asset_set_active">设为生效</string>
+    <string name="asset_active_badge">使用中</string>
+    <string name="asset_set_active_success">已将 %1$s 设为当前生效数据库</string>
+    <string name="asset_configure_update_url">配置更新链接</string>
+    <string name="asset_update_url_hint">请输入直接下载链接 (http/https)</string>
+    <string name="rule_set_tab_all">全部内置</string>
+    <string name="rule_set_tab_custom">我的/已导入</string>
+    <string name="rule_set_tab_selected">已选择</string>
+    <string name="rule_set_import_success">成功导入规则集：%1$s</string>
+    <string name="rule_set_local_source">本地导入规则集</string>
+    <string name="rule_set_custom_db_source">本地资产数据库</string>
+    <string name="rule_set_delete_confirm">确定移除此自定义规则集？</string>
 
 </resources>

@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.route
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
@@ -11,15 +12,19 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
@@ -32,20 +37,25 @@ import io.nekohasekai.sagernet.ktx.dp2px
 import io.nekohasekai.sagernet.route.RuleSetCatalog
 import io.nekohasekai.sagernet.route.RuleSets
 import io.nekohasekai.sagernet.ui.ThemedActivity
-import io.nekohasekai.sagernet.widget.ListListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Searchable multi-select rule-set picker over `srslist.h` (~2300+ remote rule-sets)
- * plus custom `.srs` URLs and remote auto-update interval settings.
+ * plus custom `.srs` URLs, local imported rule-sets, and remote auto-update interval settings.
  */
 class RuleSetPickerActivity : ThemedActivity() {
 
     companion object {
         const val EXTRA_RULE_SETS = "ruleSets"
         private const val STATE_SELECTED = "selected"
+        private const val STATE_TAB = "currentTab"
+
+        const val TAB_ALL = 0
+        const val TAB_CUSTOM = 1
+        const val TAB_SELECTED = 2
     }
 
     class Contract : ActivityResultContract<List<String>, List<String>?>() {
@@ -56,15 +66,53 @@ class RuleSetPickerActivity : ThemedActivity() {
             if (resultCode == RESULT_OK) intent?.getStringArrayListExtra(EXTRA_RULE_SETS) else null
     }
 
-    private enum class Kind { KNOWN, URL, UNKNOWN }
+    private enum class Kind { KNOWN, URL, LOCAL, CUSTOM_DB, UNKNOWN }
 
-    private class Row(val entry: String, val source: String, val kind: Kind)
+    private class Row(val entry: String, val source: String, val kind: Kind, val file: File? = null)
 
     private lateinit var binding: LayoutRuleSetPickerBinding
     private val selected = LinkedHashSet<String>()
     private var catalog = RuleSetCatalog(emptyList())
     private var rows = emptyList<Row>()
     private val adapter = RowAdapter()
+    private var currentTab = TAB_ALL
+
+    private val importRuleSetLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@registerForActivityResult
+        runCatching {
+            val fileName = contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (cursor.moveToFirst() && nameIndex >= 0) cursor.getString(nameIndex) else null
+            } ?: "ruleset_${System.currentTimeMillis()}.srs"
+
+            val rulesDir = File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets").apply { mkdirs() }
+            val destFile = File(rulesDir, fileName)
+            contentResolver.openInputStream(uri)?.use { input ->
+                destFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val customSet = DataStore.customRuleSets.toMutableSet()
+            customSet.add(fileName)
+            DataStore.customRuleSets = customSet
+
+            val entryName = "local:$fileName"
+            selected.add(entryName)
+            updateSubtitle()
+
+            currentTab = TAB_CUSTOM
+            binding.ruleSetTabs.getTabAt(TAB_CUSTOM)?.select()
+            rebuild()
+            Toast.makeText(this, getString(R.string.rule_set_import_success, fileName), Toast.LENGTH_SHORT).show()
+        }.onFailure {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.error_title)
+                .setMessage(it.message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,13 +132,43 @@ class RuleSetPickerActivity : ThemedActivity() {
 
         binding.list.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         binding.list.adapter = adapter
-        ViewCompat.setOnApplyWindowInsetsListener(binding.list, ListListener)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.list) { view, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            view.updatePadding(bottom = navBars.bottom + dp2px(16))
+            insets
+        }
         binding.search.addTextChangedListener { rebuild() }
         onBackPressedDispatcher.addCallback(this) { finishWithResult() }
 
+        binding.ruleSetTabs.addTab(binding.ruleSetTabs.newTab().setText(R.string.rule_set_tab_all))
+        binding.ruleSetTabs.addTab(binding.ruleSetTabs.newTab().setText(R.string.rule_set_tab_custom))
+        binding.ruleSetTabs.addTab(binding.ruleSetTabs.newTab().setText(R.string.rule_set_tab_selected))
+
+        binding.ruleSetTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                currentTab = tab?.position ?: TAB_ALL
+                rebuild()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
+        val hasCustomRules = DataStore.customRuleSets.isNotEmpty() ||
+            File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets").listFiles()?.isNotEmpty() == true
+        val restoredTab = savedInstanceState?.getInt(STATE_TAB, -1) ?: -1
+        currentTab = when {
+            restoredTab in TAB_ALL..TAB_SELECTED -> restoredTab
+            hasCustomRules -> TAB_CUSTOM
+            else -> TAB_ALL
+        }
+        if (currentTab != TAB_ALL) {
+            binding.ruleSetTabs.getTabAt(currentTab)?.select()
+        }
+
         lifecycleScope.launch {
             catalog = withContext(Dispatchers.IO) { RuleSetCatalog.current() }
-            binding.catalogEmpty.isVisible = catalog.size == 0
+            binding.catalogEmpty.isVisible = catalog.size == 0 && currentTab == TAB_ALL
             rebuild()
             binding.list.crossFadeFrom(binding.loading)
         }
@@ -99,6 +177,7 @@ class RuleSetPickerActivity : ThemedActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putStringArrayList(STATE_SELECTED, ArrayList(selected))
+        outState.putInt(STATE_TAB, currentTab)
     }
 
     private fun updateSubtitle() {
@@ -111,23 +190,91 @@ class RuleSetPickerActivity : ThemedActivity() {
         }
     }
 
-    private fun rowOf(entry: String): Row {
-        val normalized = entry.trim().replace(':', '-')
-        catalog.urlOf(entry)?.let { return Row(normalized, RuleSets.source(it), Kind.KNOWN) }
-        if (RuleSets.isUrl(entry)) return Row(entry, RuleSets.source(entry), Kind.URL)
-        return Row(entry, "", Kind.UNKNOWN)
+    private fun getCustomRows(): List<Row> {
+        val result = mutableListOf<Row>()
+        val seenEntries = mutableSetOf<String>()
+
+        // 1. Local files in rulesets/ directory
+        val rulesDir = File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets")
+        rulesDir.listFiles()?.forEach { file ->
+            if (file.isFile) {
+                val entry = "local:${file.name}"
+                seenEntries.add(entry)
+                seenEntries.add(file.name)
+                result.add(Row(entry, getString(R.string.rule_set_local_source), Kind.LOCAL, file))
+            }
+        }
+
+        // 2. Custom db files in app storage (e.g. geoip-lite.db, geosite-lite.db)
+        val extFilesDir = getExternalFilesDir(null) ?: filesDir
+        extFilesDir.listFiles()?.forEach { file ->
+            if (file.isFile && file.name.endsWith(".db") && file.name !in setOf("geoip.db", "geosite.db")) {
+                val entry = "local:${file.name}"
+                if (entry !in seenEntries) {
+                    seenEntries.add(entry)
+                    seenEntries.add(file.name)
+                    result.add(Row(entry, getString(R.string.rule_set_custom_db_source), Kind.CUSTOM_DB, file))
+                }
+            }
+        }
+
+        // 3. URLs and custom rule sets from DataStore or selected
+        val allCustom = (DataStore.customRuleSets + selected.filter { it.startsWith("local:") || RuleSets.isUrl(it) }).distinct()
+        for (item in allCustom) {
+            if (item !in seenEntries) {
+                seenEntries.add(item)
+                if (RuleSets.isUrl(item)) {
+                    result.add(Row(item, RuleSets.source(item), Kind.URL))
+                } else if (item.startsWith("local:")) {
+                    val fn = item.removePrefix("local:")
+                    val f = File(rulesDir, fn)
+                    result.add(Row(item, getString(R.string.rule_set_local_source), Kind.LOCAL, if (f.isFile) f else null))
+                }
+            }
+        }
+
+        return result
     }
 
     @Suppress("NotifyDataSetChanged")
     private fun rebuild() {
         val query = binding.search.text?.toString()?.trim().orEmpty()
         val normalizedSelected = selected.map { if (catalog.urlOf(it) != null) it.replace(':', '-') else it }.toSet()
-        val extra = selected.map { rowOf(it) }.filter { it.kind != Kind.KNOWN }
-            .sortedBy { if (it.kind == Kind.UNKNOWN) 0 else 1 }
-            .filter { query.isEmpty() || it.entry.contains(query, true) }
-        val matches = catalog.search(query, Int.MAX_VALUE).map { (name, url) -> Row(name, RuleSets.source(url), Kind.KNOWN) }
-        val (picked, rest) = matches.partition { it.entry in normalizedSelected }
-        rows = extra + picked + rest
+
+        when (currentTab) {
+            TAB_CUSTOM -> {
+                val customRows = getCustomRows()
+                    .filter { query.isEmpty() || it.entry.contains(query, true) }
+                val (picked, rest) = customRows.partition { isEntrySelected(it.entry) }
+                rows = picked + rest
+                binding.catalogEmpty.isVisible = rows.isEmpty()
+            }
+            TAB_SELECTED -> {
+                val selectedRows = selected.map { entry ->
+                    when {
+                        entry.startsWith("local:") -> {
+                            val fn = entry.removePrefix("local:")
+                            val f = File(File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets"), fn)
+                            Row(entry, getString(R.string.rule_set_local_source), Kind.LOCAL, if (f.isFile) f else null)
+                        }
+                        catalog.urlOf(entry) != null -> {
+                            val normalized = entry.replace(':', '-')
+                            Row(normalized, RuleSets.source(catalog.urlOf(entry)!), Kind.KNOWN)
+                        }
+                        RuleSets.isUrl(entry) -> Row(entry, RuleSets.source(entry), Kind.URL)
+                        else -> Row(entry, "", Kind.UNKNOWN)
+                    }
+                }.filter { query.isEmpty() || it.entry.contains(query, true) }
+                rows = selectedRows
+                binding.catalogEmpty.isVisible = rows.isEmpty()
+            }
+            else -> { // TAB_ALL
+                val matches = catalog.search(query, Int.MAX_VALUE).map { (name, url) -> Row(name, RuleSets.source(url), Kind.KNOWN) }
+                val (picked, rest) = matches.partition { it.entry in normalizedSelected }
+                rows = picked + rest
+                binding.catalogEmpty.isVisible = catalog.size == 0
+            }
+        }
         adapter.notifyDataSetChanged()
     }
 
@@ -162,6 +309,11 @@ class RuleSetPickerActivity : ThemedActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_import_file -> {
+                importRuleSetLauncher.launch(arrayOf("*/*"))
+                return true
+            }
+
             R.id.action_add_url -> {
                 addUrl()
                 return true
@@ -215,7 +367,13 @@ class RuleSetPickerActivity : ThemedActivity() {
                 return@setOnClickListener
             }
             selected.add(url)
+            val customSet = DataStore.customRuleSets.toMutableSet()
+            customSet.add(url)
+            DataStore.customRuleSets = customSet
+
             updateSubtitle()
+            currentTab = TAB_CUSTOM
+            binding.ruleSetTabs.getTabAt(TAB_CUSTOM)?.select()
             rebuild()
             binding.list.scrollToPosition(0)
             dialog.dismiss()
@@ -229,7 +387,7 @@ class RuleSetPickerActivity : ThemedActivity() {
                 RuleSetCatalog.refreshCatalog()
             }
             catalog = withContext(Dispatchers.IO) { RuleSetCatalog.current() }
-            binding.catalogEmpty.isVisible = catalog.size == 0
+            binding.catalogEmpty.isVisible = catalog.size == 0 && currentTab == TAB_ALL
             rebuild()
             if (error == null) {
                 Toast.makeText(
@@ -256,8 +414,13 @@ class RuleSetPickerActivity : ThemedActivity() {
         override fun getItemCount() = rows.size
 
         override fun getSectionName(position: Int): String {
+            if (position !in rows.indices) return "*"
             val row = rows[position]
-            return if (row.kind == Kind.KNOWN) row.entry.removePrefix("geoip-").removePrefix("geosite-").take(1).uppercase() else "*"
+            return if (row.kind == Kind.KNOWN) {
+                row.entry.removePrefix("geoip-").removePrefix("geosite-").take(1).uppercase()
+            } else {
+                "*"
+            }
         }
     }
 
@@ -271,17 +434,44 @@ class RuleSetPickerActivity : ThemedActivity() {
                 binding.check.isChecked = isEntrySelected(row.entry)
                 updateSubtitle()
             }
+
+            binding.root.setOnLongClickListener {
+                if (row.kind == Kind.LOCAL && row.file != null && row.file.isFile) {
+                    MaterialAlertDialogBuilder(this@RuleSetPickerActivity)
+                        .setTitle(R.string.action_delete)
+                        .setMessage(getString(R.string.rule_set_delete_confirm, row.file.name))
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            row.file.delete()
+                            selected.remove(row.entry)
+                            selected.remove(row.file.name)
+                            val set = DataStore.customRuleSets.toMutableSet()
+                            set.remove(row.file.name)
+                            DataStore.customRuleSets = set
+                            updateSubtitle()
+                            rebuild()
+                            Toast.makeText(this@RuleSetPickerActivity, "已删除 ${row.file.name}", Toast.LENGTH_SHORT).show()
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show()
+                    true
+                } else {
+                    false
+                }
+            }
         }
 
         fun bind(row: Row) {
             this.row = row
-            binding.name.text = when (row.kind) {
-                Kind.URL -> RuleSets.shortName(row.entry)
+            binding.name.text = when {
+                row.kind == Kind.URL -> RuleSets.shortName(row.entry)
+                row.entry.startsWith("local:") -> row.entry.removePrefix("local:")
                 else -> row.entry
             }
             binding.source.text = when (row.kind) {
                 Kind.KNOWN -> row.source
                 Kind.URL -> getString(R.string.rule_set_url_source, row.source)
+                Kind.LOCAL -> getString(R.string.rule_set_local_source)
+                Kind.CUSTOM_DB -> getString(R.string.rule_set_custom_db_source)
                 Kind.UNKNOWN -> getString(R.string.rule_set_unknown)
             }
             if (row.kind == Kind.UNKNOWN) {

@@ -16,6 +16,8 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.NestedScrollView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.button.MaterialButton
@@ -374,6 +376,12 @@ class UiScaleSettingsActivity : ThemedActivity() {
         content.addView(actionRow)
 
         setContentView(root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            scroll.setPadding(dp2px(14), dp2px(10), dp2px(14), dp2px(28) + navBars.bottom)
+            insets
+        }
+        ViewCompat.requestApplyInsets(root)
         refreshLivePreview()
     }
 

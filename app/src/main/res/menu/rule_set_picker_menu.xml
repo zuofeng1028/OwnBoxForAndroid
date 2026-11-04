@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_import_file"
+        android:icon="@drawable/ic_file_file_upload"
+        android:title="@string/action_import_file"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_add_url"
         android:icon="@drawable/ic_baseline_link_24"
         android:title="@string/rule_set_add_url"

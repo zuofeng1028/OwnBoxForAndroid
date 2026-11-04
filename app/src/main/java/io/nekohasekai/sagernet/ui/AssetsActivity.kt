@@ -6,10 +6,16 @@ import android.text.format.DateFormat
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
+import android.text.InputType
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.DataStore
@@ -226,41 +232,99 @@ class AssetsActivity : ThemedActivity() {
 
             binding.assetStatus.text = getString(R.string.route_asset_status, localVersion)
 
-            binding.rulesUpdate.isInvisible = file.name !in assetNames
-            binding.rulesUpdate.setOnClickListener {
-                updating.incrementAndGet()
-                layout.refreshLayout.isEnabled = false
-                binding.subscriptionUpdateProgress.isInvisible = false
-                binding.rulesUpdate.isInvisible = true
-                android.widget.Toast.makeText(this@AssetsActivity, "正在检查并更新 ${file.name}...", android.widget.Toast.LENGTH_SHORT).show()
+            val isGeoip = file.name.contains("geoip", ignoreCase = true)
+            val isGeosite = file.name.contains("geosite", ignoreCase = true)
+            val isActive = when {
+                isGeoip -> DataStore.activeGeoipDb == file.name || (DataStore.activeGeoipDb.isBlank() && file.name == "geoip.db")
+                isGeosite -> DataStore.activeGeositeDb == file.name || (DataStore.activeGeositeDb.isBlank() && file.name == "geosite.db")
+                else -> false
+            }
+
+            binding.assetActiveBadge.isVisible = isActive
+            binding.btnSetActive.isVisible = !isActive && (isGeoip || isGeosite)
+
+            binding.btnSetActive.setOnClickListener {
+                val filesDir = getExternalFilesDir(null) ?: filesDir
                 runOnDefaultDispatcher {
-                    runCatching {
-                        updateAsset(file, versionFile, localVersion)
-                    }.onSuccess { updated ->
-                        onMainDispatcher {
-                            if (updated) {
-                                android.widget.Toast.makeText(this@AssetsActivity, "${file.name} 更新成功！", android.widget.Toast.LENGTH_SHORT).show()
-                            } else {
-                                android.widget.Toast.makeText(this@AssetsActivity, "${file.name} 已经是最新版本", android.widget.Toast.LENGTH_SHORT).show()
+                    if (isGeoip) {
+                        DataStore.activeGeoipDb = file.name
+                        if (file.name != "geoip.db") {
+                            file.copyTo(File(filesDir, "geoip.db"), overwrite = true)
+                            if (versionFile.isFile) {
+                                versionFile.copyTo(File(filesDir, "geoip.version.txt"), overwrite = true)
                             }
                         }
-                    }.onFailure {
-                        onMainDispatcher {
-                            android.widget.Toast.makeText(this@AssetsActivity, "${file.name} 更新失败: ${it.readableMessage}", android.widget.Toast.LENGTH_LONG).show()
-                            alert(it.readableMessage).tryToShow()
+                    } else if (isGeosite) {
+                        DataStore.activeGeositeDb = file.name
+                        if (file.name != "geosite.db") {
+                            file.copyTo(File(filesDir, "geosite.db"), overwrite = true)
+                            if (versionFile.isFile) {
+                                versionFile.copyTo(File(filesDir, "geosite.version.txt"), overwrite = true)
+                            }
                         }
                     }
-
                     onMainDispatcher {
-                        binding.rulesUpdate.isInvisible = false
-                        binding.subscriptionUpdateProgress.isInvisible = true
-                        if (updating.decrementAndGet() == 0) {
-                            layout.refreshLayout.isEnabled = true
-                        }
+                        Toast.makeText(this@AssetsActivity, getString(R.string.asset_set_active_success, file.name), Toast.LENGTH_SHORT).show()
+                        adapter.reloadAssets()
                     }
                 }
             }
 
+            val isCustom = file.name !in assetNames
+            binding.rulesUpdate.isVisible = true
+            binding.rulesUpdate.setOnClickListener {
+                if (isCustom && DataStore.getAssetUpdateUrl(file.name).isBlank()) {
+                    promptSetAssetUpdateUrl(file) {
+                        doUpdate(file, versionFile, localVersion, binding)
+                    }
+                } else {
+                    doUpdate(file, versionFile, localVersion, binding)
+                }
+            }
+
+            binding.root.setOnLongClickListener {
+                if (isCustom) {
+                    promptSetAssetUpdateUrl(file) {
+                        doUpdate(file, versionFile, localVersion, binding)
+                    }
+                    true
+                } else false
+            }
+
+        }
+
+        private fun doUpdate(file: File, versionFile: File, localVersion: String, binding: LayoutAssetItemBinding) {
+            updating.incrementAndGet()
+            layout.refreshLayout.isEnabled = false
+            binding.subscriptionUpdateProgress.isInvisible = false
+            binding.rulesUpdate.isInvisible = true
+            Toast.makeText(this@AssetsActivity, "正在检查并更新 ${file.name}...", Toast.LENGTH_SHORT).show()
+            runOnDefaultDispatcher {
+                runCatching {
+                    updateAsset(file, versionFile, localVersion)
+                }.onSuccess { updated ->
+                    onMainDispatcher {
+                        if (updated) {
+                            Toast.makeText(this@AssetsActivity, "${file.name} 更新成功！", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@AssetsActivity, "${file.name} 已经是最新版本", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }.onFailure {
+                    onMainDispatcher {
+                        Toast.makeText(this@AssetsActivity, "${file.name} 更新失败: ${it.readableMessage}", Toast.LENGTH_LONG).show()
+                        alert(it.readableMessage).tryToShow()
+                    }
+                }
+
+                onMainDispatcher {
+                    binding.rulesUpdate.isInvisible = false
+                    binding.subscriptionUpdateProgress.isInvisible = true
+                    if (updating.decrementAndGet() == 0) {
+                        layout.refreshLayout.isEnabled = true
+                    }
+                }
+            }
         }
 
     }
@@ -282,8 +346,41 @@ class AssetsActivity : ThemedActivity() {
         ),
     )
 
+    private fun promptSetAssetUpdateUrl(file: File, onSaved: (() -> Unit)? = null) {
+        val container = FrameLayout(this)
+        val padH = dp2px(20)
+        val padV = dp2px(8)
+        val input = EditText(this).apply {
+            hint = "https://.../${file.name}"
+            setText(DataStore.getAssetUpdateUrl(file.name))
+            setSingleLine()
+        }
+        val lp = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            setMargins(padH, padV, padH, padV)
+        }
+        container.addView(input, lp)
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.asset_configure_update_url, file.name))
+            .setMessage(R.string.asset_update_url_hint)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newUrl = input.text.toString().trim()
+                DataStore.setAssetUpdateUrl(file.name, newUrl)
+                if (newUrl.isNotBlank()) {
+                    Toast.makeText(this, "已保存更新地址", Toast.LENGTH_SHORT).show()
+                    onSaved?.invoke()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     suspend fun updateAsset(file: File, versionFile: File, localVersion: String): Boolean {
-        if (DataStore.rulesProvider == 4){
+        if (DataStore.rulesProvider == 4 || file.name !in assetNames) {
             return updateCustomAsset(file, versionFile)
         }
         val fileName = file.name
@@ -370,12 +467,15 @@ class AssetsActivity : ThemedActivity() {
 
     suspend fun updateCustomAsset(file: File, versionFile: File): Boolean {
         val fileName = file.name
-        val url: String = if (fileName == "geoip.db") {
-            DataStore.rulesGeoipUrl
-        } else if (fileName == "geosite.db") {
-            DataStore.rulesGeositeUrl
-        } else {
-            return false
+        val customUrl = DataStore.getAssetUpdateUrl(fileName)
+        val url: String = when {
+            customUrl.isNotBlank() -> customUrl
+            fileName == "geoip.db" -> DataStore.rulesGeoipUrl
+            fileName == "geosite.db" -> DataStore.rulesGeositeUrl
+            else -> ""
+        }
+        if (url.isBlank()) {
+            error(getString(R.string.asset_update_url_hint))
         }
         val client = Libcore.newHttpClient().apply {
                     modernTLS()
@@ -393,6 +493,15 @@ class AssetsActivity : ThemedActivity() {
 
             val currentDate = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())
             versionFile.writeText(currentDate)
+
+            val filesDir = getExternalFilesDir(null) ?: filesDir
+            if (DataStore.activeGeoipDb == fileName && fileName != "geoip.db") {
+                file.copyTo(File(filesDir, "geoip.db"), overwrite = true)
+                versionFile.copyTo(File(filesDir, "geoip.version.txt"), overwrite = true)
+            } else if (DataStore.activeGeositeDb == fileName && fileName != "geosite.db") {
+                file.copyTo(File(filesDir, "geosite.db"), overwrite = true)
+                versionFile.copyTo(File(filesDir, "geosite.version.txt"), overwrite = true)
+            }
 
             adapter.reloadAssets()
             onMainDispatcher {

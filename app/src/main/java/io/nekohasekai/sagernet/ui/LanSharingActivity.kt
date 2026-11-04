@@ -19,6 +19,9 @@ import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
@@ -83,6 +86,13 @@ class LanSharingActivity : ThemedActivity(), SagerConnection.Callback {
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            binding.root.updatePadding(bottom = navBars.bottom)
+            insets
+        }
+        ViewCompat.requestApplyInsets(binding.root)
 
         setupViews()
         connection.connect(this, this)
