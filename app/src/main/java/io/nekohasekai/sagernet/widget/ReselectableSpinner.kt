@@ -10,6 +10,18 @@ class ReselectableSpinner @JvmOverloads constructor(
 
     var onPopupClosed: (() -> Unit)? = null
 
+    init {
+        try {
+            val popupField = AppCompatSpinner::class.java.getDeclaredField("mPopup")
+            popupField.isAccessible = true
+            val popup = popupField.get(this)
+            val setElevationMethod = popup?.javaClass?.getMethod("setElevation", Float::class.javaPrimitiveType)
+            setElevationMethod?.invoke(popup, 12f * context.resources.displayMetrics.density)
+        } catch (_: Throwable) {
+        }
+    }
+
+
     override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
         super.onWindowFocusChanged(hasWindowFocus)
         if (hasWindowFocus) onPopupClosed?.invoke()

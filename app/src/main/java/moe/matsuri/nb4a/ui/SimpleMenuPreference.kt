@@ -17,12 +17,16 @@
 package moe.matsuri.nb4a.ui
 
 import android.content.Context
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.preference.DropDownPreference
 import androidx.preference.PreferenceViewHolder
 import io.nekohasekai.sagernet.R
@@ -32,7 +36,6 @@ import io.nekohasekai.sagernet.ktx.getColorAttr
  * Bend [DropDownPreference] to support
  * [Simple Menus](https://material.google.com/components/menus.html#menus-behavior).
  */
-
 
 open class SimpleMenuPreference
 @JvmOverloads constructor(
@@ -49,18 +52,21 @@ open class SimpleMenuPreference
         val mSpinner = holder.itemView.findViewById<Spinner>(R.id.spinner) ?: return
         mSpinner.layoutParams?.width = ViewGroup.LayoutParams.WRAP_CONTENT
         mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)
+        if (::mAdapter.isInitialized) {
+            mAdapter.currentPosition = findIndexOfValue(value)
+        }
     }
 
     override fun createAdapter(): ArrayAdapter<CharSequence?> {
         mAdapter = SimpleMenuAdapter(getContext(), R.layout.simple_menu_dropdown_item)
+        mAdapter.currentPosition = findIndexOfValue(value)
         return mAdapter
     }
 
     override fun setValue(value: String?) {
         super.setValue(value)
         if (::mAdapter.isInitialized) {
-            val values = entryValues
-            mAdapter.currentPosition = if (values != null && value != null) values.indexOf(value) else -1
+            mAdapter.currentPosition = findIndexOfValue(value)
             mAdapter.notifyDataSetChanged()
         }
     }
@@ -70,40 +76,50 @@ open class SimpleMenuPreference
 
         var currentPosition = -1
 
-        private val radius = 12f * context.resources.displayMetrics.density
-        private val selectedColor = context.getColorAttr(R.attr.colorMaterial100)
+        private val density = context.resources.displayMetrics.density
+        private val primaryColor = context.getColorAttr(androidx.appcompat.R.attr.colorPrimary)
+        private val surfaceColor = context.getColorAttr(com.google.android.material.R.attr.colorSurface)
+        private val defaultTextColor = context.getColorAttr(android.R.attr.textColorPrimary)
 
-        private val topDrawable = GradientDrawable().apply {
-            setColor(selectedColor)
-            cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
-        }
+        private val isDark = ColorUtils.calculateLuminance(surfaceColor) < 0.5
 
-        private val bottomDrawable = GradientDrawable().apply {
-            setColor(selectedColor)
-            cornerRadii = floatArrayOf(0f, 0f, 0f, 0f, radius, radius, radius, radius)
-        }
+        // Inset pill: Theme primary color with ~14% (light) or ~22% (dark) alpha blended over surface
+        private val selectedBgColor = ColorUtils.compositeColors(
+            ColorUtils.setAlphaComponent(primaryColor, if (isDark) (255 * 0.22).toInt() else (255 * 0.14).toInt()),
+            surfaceColor
+        )
+        private val selectedStrokeColor = ColorUtils.setAlphaComponent(
+            primaryColor,
+            if (isDark) (255 * 0.50).toInt() else (255 * 0.38).toInt()
+        )
 
-        private val middleDrawable = GradientDrawable().apply {
-            setColor(selectedColor)
-        }
+        private val pillRadius = 8f * density
+        private val pillStrokeWidth = (1.5f * density).toInt()
+        private val insetH = (6f * density).toInt()
+        private val insetV = (2f * density).toInt()
 
-        private val singleDrawable = GradientDrawable().apply {
-            setColor(selectedColor)
-            cornerRadii = floatArrayOf(radius, radius, radius, radius, radius, radius, radius, radius)
-        }
+        private val selectedItemDrawable = InsetDrawable(
+            GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = pillRadius
+                setColor(selectedBgColor)
+                setStroke(pillStrokeWidth, selectedStrokeColor)
+            },
+            insetH, insetV, insetH, insetV
+        )
 
         override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view: View = super.getDropDownView(position, convertView, parent)
+            val textView = view as? TextView
 
             if (position == currentPosition) {
-                view.background = when {
-                    position == 0 && count == 1 -> singleDrawable
-                    position == 0 -> topDrawable
-                    position == count - 1 -> bottomDrawable
-                    else -> middleDrawable
-                }
+                view.background = selectedItemDrawable
+                textView?.setTextColor(primaryColor)
+                textView?.setTypeface(null, Typeface.BOLD)
             } else {
                 view.background = null
+                textView?.setTextColor(defaultTextColor)
+                textView?.setTypeface(null, Typeface.NORMAL)
             }
             return view
         }

@@ -2,8 +2,13 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <corners android:radius="12dp" />
-    <solid android:color="@color/preference_simple_menu_background" />
+    <solid android:color="?attr/colorSurface" />
     <stroke
-        android:width="@dimen/card_stroke_width"
-        android:color="@color/card_stroke" />
+        android:width="1.5dp"
+        android:color="@color/popup_dropdown_stroke" />
+    <padding
+        android:top="4dp"
+        android:bottom="4dp"
+        android:left="2dp"
+        android:right="2dp" />
 </shape>
