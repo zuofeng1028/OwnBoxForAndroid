@@ -409,6 +409,25 @@ class RuleSetPickerActivity : ThemedActivity() {
         }
     }
 
+    private fun showCustomDbDialog(row: Row) {
+        val fileName = row.entry.removePrefix("local:")
+        MaterialAlertDialogBuilder(this)
+            .setTitle(fileName)
+            .setMessage(getString(R.string.rule_set_custom_db_dialog_msg, fileName))
+            .setPositiveButton(R.string.rule_set_custom_db_search_built_in) { _, _ ->
+                currentTab = TAB_ALL
+                binding.ruleSetTabs.getTabAt(TAB_ALL)?.select()
+                binding.search.requestFocus()
+            }
+            .setNeutralButton(if (isEntrySelected(row.entry)) R.string.rule_set_deselect else R.string.rule_set_select_anyway) { _, _ ->
+                toggleSelection(row.entry)
+                adapter.notifyDataSetChanged()
+                updateSubtitle()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private inner class RowAdapter : RecyclerView.Adapter<RowHolder>(), FastScrollRecyclerView.SectionedAdapter {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             RowHolder(LayoutRuleSetItemBinding.inflate(layoutInflater, parent, false))
@@ -431,25 +450,6 @@ class RuleSetPickerActivity : ThemedActivity() {
     private inner class RowHolder(val binding: LayoutRuleSetItemBinding) : RecyclerView.ViewHolder(binding.root) {
         private lateinit var row: Row
         private val sourceColors = binding.source.textColors
-
-        private fun showCustomDbDialog(row: Row) {
-            val fileName = row.entry.removePrefix("local:")
-            MaterialAlertDialogBuilder(this@RuleSetPickerActivity)
-                .setTitle(fileName)
-                .setMessage(getString(R.string.rule_set_custom_db_dialog_msg, fileName))
-                .setPositiveButton(R.string.rule_set_custom_db_search_built_in) { _, _ ->
-                    currentTab = TAB_ALL
-                    binding.ruleSetTabs.getTabAt(TAB_ALL)?.select()
-                    binding.search.requestFocus()
-                }
-                .setNeutralButton(if (isEntrySelected(row.entry)) R.string.rule_set_deselect else R.string.rule_set_select_anyway) { _, _ ->
-                    toggleSelection(row.entry)
-                    binding.check.isChecked = isEntrySelected(row.entry)
-                    updateSubtitle()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
 
         init {
             binding.root.setOnClickListener {
