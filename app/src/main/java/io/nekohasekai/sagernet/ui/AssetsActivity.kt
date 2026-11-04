@@ -7,12 +7,18 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import android.text.InputType
+import android.net.Uri
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButton
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -346,31 +352,106 @@ class AssetsActivity : ThemedActivity() {
         ),
     )
 
+    companion object {
+        fun normalizeAssetUpdateUrl(input: String, fileName: String): String {
+            var raw = input.trim()
+            if (raw.isBlank()) return ""
+            if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
+                raw = "https://$raw"
+            }
+            val uri = runCatching { Uri.parse(raw) }.getOrNull() ?: return raw
+            val host = uri.host?.lowercase().orEmpty()
+
+            if (host == "github.com" || host.endsWith(".github.com")) {
+                val pathSegments = uri.pathSegments.filter { it.isNotBlank() }
+                if (pathSegments.size >= 2) {
+                    val owner = pathSegments[0]
+                    val repo = pathSegments[1].removeSuffix(".git")
+
+                    if (raw.contains("/releases/download/") || raw.contains("/releases/latest/download/") ||
+                        raw.endsWith(".db") || raw.endsWith(".dat") || raw.endsWith(".srs")
+                    ) {
+                        return raw
+                    }
+
+                    return "https://github.com/$owner/$repo/releases/latest/download/$fileName"
+                }
+            }
+            return raw
+        }
+    }
+
     private fun promptSetAssetUpdateUrl(file: File, onSaved: (() -> Unit)? = null) {
-        val container = FrameLayout(this)
-        val padH = dp2px(20)
-        val padV = dp2px(8)
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val padH = dp2px(20)
+            val padV = dp2px(12)
+            setPadding(padH, padV, padH, padV)
+        }
+
+        val msgView = TextView(this).apply {
+            text = getString(R.string.asset_update_url_dialog_msg)
+            textSize = 13f
+            setTextColor(ContextCompat.getColor(this@AssetsActivity, R.color.material_on_surface_emphasis_medium))
+            setPadding(0, 0, 0, dp2px(8))
+        }
+        container.addView(msgView)
+
         val input = EditText(this).apply {
-            hint = "https://.../${file.name}"
+            hint = "https://github.com/owner/repo"
             setText(DataStore.getAssetUpdateUrl(file.name))
-            setSingleLine()
+            isSingleLine = true
         }
-        val lp = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {
-            setMargins(padH, padV, padH, padV)
+        container.addView(input)
+
+        val isGeosite = file.name.contains("geosite", ignoreCase = true)
+        val isGeoip = file.name.contains("geoip", ignoreCase = true)
+        if (isGeosite || isGeoip) {
+            val presets = if (isGeosite) {
+                listOf(
+                    Pair(getString(R.string.asset_preset_soffchen), "https://github.com/soffchen/sing-geosite/releases/latest/download/geosite.db"),
+                    Pair(getString(R.string.asset_preset_metacubex), "https://github.com/MetaCubeX/meta-rules-dat/releases/latest/download/geosite.db"),
+                    Pair(getString(R.string.asset_preset_sagernet), "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db")
+                )
+            } else {
+                listOf(
+                    Pair(getString(R.string.asset_preset_soffchen), "https://github.com/soffchen/sing-geoip/releases/latest/download/geoip.db"),
+                    Pair(getString(R.string.asset_preset_metacubex), "https://github.com/MetaCubeX/meta-rules-dat/releases/latest/download/geoip.db"),
+                    Pair(getString(R.string.asset_preset_sagernet), "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db")
+                )
+            }
+
+            val scroll = HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                setPadding(0, dp2px(8), 0, 0)
+            }
+            val btnRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+            }
+            for ((label, url) in presets) {
+                val btn = MaterialButton(this, null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
+                    text = label
+                    textSize = 12f
+                    setPadding(dp2px(6), dp2px(2), dp2px(6), dp2px(2))
+                    setOnClickListener {
+                        input.setText(url)
+                        input.setSelection(url.length)
+                    }
+                }
+                btnRow.addView(btn)
+            }
+            scroll.addView(btnRow)
+            container.addView(scroll)
         }
-        container.addView(input, lp)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.asset_configure_update_url, file.name))
-            .setMessage(R.string.asset_update_url_hint)
             .setView(container)
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                val newUrl = input.text.toString().trim()
-                DataStore.setAssetUpdateUrl(file.name, newUrl)
-                if (newUrl.isNotBlank()) {
+                val rawUrl = input.text.toString().trim()
+                val resolvedUrl = normalizeAssetUpdateUrl(rawUrl, file.name)
+                DataStore.setAssetUpdateUrl(file.name, resolvedUrl)
+                if (resolvedUrl.isNotBlank()) {
                     Toast.makeText(this, "已保存更新地址", Toast.LENGTH_SHORT).show()
                     onSaved?.invoke()
                 }
@@ -468,8 +549,8 @@ class AssetsActivity : ThemedActivity() {
     suspend fun updateCustomAsset(file: File, versionFile: File): Boolean {
         val fileName = file.name
         val customUrl = DataStore.getAssetUpdateUrl(fileName)
-        val url: String = when {
-            customUrl.isNotBlank() -> customUrl
+        var url: String = when {
+            customUrl.isNotBlank() -> normalizeAssetUpdateUrl(customUrl, fileName)
             fileName == "geoip.db" -> DataStore.rulesGeoipUrl
             fileName == "geosite.db" -> DataStore.rulesGeositeUrl
             else -> ""
@@ -478,17 +559,51 @@ class AssetsActivity : ThemedActivity() {
             error(getString(R.string.asset_update_url_hint))
         }
         val client = Libcore.newHttpClient().apply {
-                    modernTLS()
-                    keepAlive()
-                    tryProxyOutbound()
-                }
+            modernTLS()
+            keepAlive()
+            tryProxyOutbound()
+        }
         try {
-            val response = client.newRequest().apply {
-                setURL(url)
-            }.execute()
+            var response = runCatching {
+                client.newRequest().apply {
+                    setURL(url)
+                }.execute()
+            }.getOrNull()
+
+            // If initial request failed/404 and filename has -lite, fallback to base .db name in url
+            if (response == null && fileName.contains("-lite")) {
+                val baseFileName = if (fileName.contains("geosite")) "geosite.db" else "geoip.db"
+                val fallbackUrl = url.replace(fileName, baseFileName)
+                if (fallbackUrl != url) {
+                    response = runCatching {
+                        client.newRequest().apply {
+                            setURL(fallbackUrl)
+                        }.execute()
+                    }.getOrNull()
+                }
+            }
+
+            if (response == null) {
+                error("无法连接到更新服务器或链接无效: $url")
+            }
+
             val cacheFile = File(file.parentFile, fileName + ".tmp")
             cacheFile.parentFile?.mkdirs()
             response.writeTo(cacheFile.canonicalPath)
+
+            if (!cacheFile.exists() || cacheFile.length() < 100) {
+                cacheFile.delete()
+                error(getString(R.string.asset_update_empty_error))
+            }
+
+            val headerBytes = ByteArray(512)
+            val readLen = cacheFile.inputStream().use { it.read(headerBytes) }
+            val headerText = if (readLen > 0) String(headerBytes, 0, readLen, Charsets.UTF_8).lowercase() else ""
+            if (headerText.contains("<!doctype html") || headerText.contains("<html") || headerText.contains("404: not found")) {
+                cacheFile.delete()
+                error(getString(R.string.asset_update_html_error))
+            }
+
             cacheFile.renameTo(file)
 
             val currentDate = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())
@@ -510,9 +625,6 @@ class AssetsActivity : ThemedActivity() {
             return true
         } finally {
             client.close()
-            // if (versionFile.isFile) {
-            //     versionFile.delete()
-            // }
         }
     }
 

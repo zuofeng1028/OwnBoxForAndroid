@@ -1298,8 +1298,17 @@
     <string name="rule_set_tab_custom">My / Imported</string>
     <string name="rule_set_tab_selected">Selected</string>
     <string name="rule_set_import_success">Imported rule set: %1$s</string>
-    <string name="rule_set_local_source">Local rule set</string>
-    <string name="rule_set_custom_db_source">Local database</string>
+    <string name="rule_set_local_source">Local rule set (.srs)</string>
+    <string name="rule_set_custom_db_source">Asset DB · Contains All Categories</string>
+    <string name="rule_set_custom_db_dialog_msg">"%1$s" is an asset database (contains all categories including Telegram, Google, AI, etc.).\n\n• To use this database: set it as active in the Route Assets page.\n• To route specific rules: switch to "All Builtin" tab and search for the category to select.</string>
+    <string name="rule_set_custom_db_search_built_in">Search in All Builtin</string>
+    <string name="rule_set_select_anyway">Select Database Anyway</string>
+    <string name="rule_set_deselect">Deselect</string>
     <string name="rule_set_delete_confirm">Remove this custom rule set?</string>
-
+    <string name="asset_update_url_dialog_msg">Paste a GitHub repo URL (e.g. https://github.com/owner/repo) to automatically resolve the latest Release download URL, or tap a preset below:</string>
+    <string name="asset_preset_soffchen">soffchen (Lite)</string>
+    <string name="asset_preset_metacubex">MetaCubeX (Full)</string>
+    <string name="asset_preset_sagernet">SagerNet (Official)</string>
+    <string name="asset_update_html_error">The downloaded content is a webpage or 404 page, not a rule database. Existing file preserved.</string>
+    <string name="asset_update_empty_error">The downloaded file is empty or corrupted. Existing file preserved.</string>
 </resources>

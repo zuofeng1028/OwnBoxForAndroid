@@ -154,12 +154,10 @@ class RuleSetPickerActivity : ThemedActivity() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
 
-        val hasCustomRules = DataStore.customRuleSets.isNotEmpty() ||
-            File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets").listFiles()?.isNotEmpty() == true
         val restoredTab = savedInstanceState?.getInt(STATE_TAB, -1) ?: -1
         currentTab = when {
             restoredTab in TAB_ALL..TAB_SELECTED -> restoredTab
-            hasCustomRules -> TAB_CUSTOM
+            selected.isNotEmpty() -> TAB_SELECTED
             else -> TAB_ALL
         }
         if (currentTab != TAB_ALL) {
@@ -255,7 +253,12 @@ class RuleSetPickerActivity : ThemedActivity() {
                         entry.startsWith("local:") -> {
                             val fn = entry.removePrefix("local:")
                             val f = File(File(getExternalFilesDir("rulesets") ?: filesDir, "rulesets"), fn)
-                            Row(entry, getString(R.string.rule_set_local_source), Kind.LOCAL, if (f.isFile) f else null)
+                            val extF = File(getExternalFilesDir(null) ?: filesDir, fn)
+                            val isDb = fn.endsWith(".db")
+                            val finalFile = if (f.isFile) f else if (extF.isFile) extF else null
+                            val kind = if (isDb) Kind.CUSTOM_DB else Kind.LOCAL
+                            val source = if (isDb) getString(R.string.rule_set_custom_db_source) else getString(R.string.rule_set_local_source)
+                            Row(entry, source, kind, finalFile)
                         }
                         catalog.urlOf(entry) != null -> {
                             val normalized = entry.replace(':', '-')
@@ -429,16 +432,39 @@ class RuleSetPickerActivity : ThemedActivity() {
         private lateinit var row: Row
         private val sourceColors = binding.source.textColors
 
+        private fun showCustomDbDialog(row: Row) {
+            val fileName = row.entry.removePrefix("local:")
+            MaterialAlertDialogBuilder(this@RuleSetPickerActivity)
+                .setTitle(fileName)
+                .setMessage(getString(R.string.rule_set_custom_db_dialog_msg, fileName))
+                .setPositiveButton(R.string.rule_set_custom_db_search_built_in) { _, _ ->
+                    currentTab = TAB_ALL
+                    binding.ruleSetTabs.getTabAt(TAB_ALL)?.select()
+                    binding.search.requestFocus()
+                }
+                .setNeutralButton(if (isEntrySelected(row.entry)) R.string.rule_set_deselect else R.string.rule_set_select_anyway) { _, _ ->
+                    toggleSelection(row.entry)
+                    binding.check.isChecked = isEntrySelected(row.entry)
+                    updateSubtitle()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
         init {
             binding.root.setOnClickListener {
-                toggleSelection(row.entry)
-                binding.check.isChecked = isEntrySelected(row.entry)
-                updateSubtitle()
+                if (row.kind == Kind.CUSTOM_DB) {
+                    showCustomDbDialog(row)
+                } else {
+                    toggleSelection(row.entry)
+                    binding.check.isChecked = isEntrySelected(row.entry)
+                    updateSubtitle()
+                }
             }
 
             binding.root.setOnLongClickListener {
                 val targetFile = row.file
-                if (row.kind == Kind.LOCAL && targetFile != null && targetFile.isFile) {
+                if ((row.kind == Kind.LOCAL || row.kind == Kind.CUSTOM_DB) && targetFile != null && targetFile.isFile) {
                     MaterialAlertDialogBuilder(this@RuleSetPickerActivity)
                         .setTitle(R.string.delete)
                         .setMessage(getString(R.string.rule_set_delete_confirm))

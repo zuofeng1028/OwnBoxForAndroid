@@ -1215,8 +1215,17 @@
     <string name="rule_set_tab_custom">我的/已导入</string>
     <string name="rule_set_tab_selected">已选择</string>
     <string name="rule_set_import_success">成功导入规则集：%1$s</string>
-    <string name="rule_set_local_source">本地导入规则集</string>
-    <string name="rule_set_custom_db_source">本地资产数据库</string>
+    <string name="rule_set_local_source">本地规则集 (.srs)</string>
+    <string name="rule_set_custom_db_source">资产母库 · 含全量分类</string>
+    <string name="rule_set_custom_db_dialog_msg">“%1$s” 是全局资产母库（已内置 Telegram、Google、AI 等全部分类）。\n\n• 若需使用该母库：请在【路由资产】页面将其【设为生效】。\n• 若需分流具体规则（如 Telegram、Google、AI）：请直接切换到【全部内置】标签页，搜索对应名称并勾选即可。</string>
+    <string name="rule_set_custom_db_search_built_in">去【全部内置】搜索分类</string>
+    <string name="rule_set_select_anyway">仍然勾选此母库</string>
+    <string name="rule_set_deselect">取消勾选</string>
     <string name="rule_set_delete_confirm">确定移除此自定义规则集？</string>
-
+    <string name="asset_update_url_dialog_msg">支持输入 GitHub 仓库链接（如 https://github.com/owner/repo），将自动解析最新 Release 下载直链。亦可点击下方常用源快速填入：</string>
+    <string name="asset_preset_soffchen">soffchen (精简)</string>
+    <string name="asset_preset_metacubex">MetaCubeX (全量)</string>
+    <string name="asset_preset_sagernet">SagerNet (官方)</string>
+    <string name="asset_update_html_error">下载返回的是网页或 404 页面，而非规则数据库文件。已自动保护现有文件未被覆盖。</string>
+    <string name="asset_update_empty_error">下载文件为空或异常，已保护本地文件。</string>
 </resources>
