@@ -3108,10 +3108,13 @@ class ConfigurationFragment @JvmOverloads constructor(
             val tvTitle = root.findViewById<TextView>(R.id.tv_subscription_title)
             val tvExpire = root.findViewById<TextView>(R.id.tv_expire_date)
             val layoutTraffic = root.findViewById<View>(R.id.layout_traffic_details)
+            val tvTrafficStatLabel = root.findViewById<TextView>(R.id.tv_traffic_stat_label)
             val tvTrafficStat = root.findViewById<TextView>(R.id.tv_traffic_stat)
             val tvTrafficRemaining = root.findViewById<TextView>(R.id.tv_traffic_remaining)
+            val progressTraffic = root.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.progress_traffic)
             val tvNodeCount = root.findViewById<TextView>(R.id.tv_node_count)
             val tvLastUpdated = root.findViewById<TextView>(R.id.tv_last_updated)
+            val btnUpdate = root.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_card_update)
 
             if (isAllGroupsTab || currentGroup.type != GroupType.SUBSCRIPTION || currentGroup.subscription == null) {
                 val groupName = if (isAllGroupsTab) {
@@ -3123,15 +3126,21 @@ class ConfigurationFragment @JvmOverloads constructor(
                 tvExpire?.isGone = true
                 layoutTraffic?.isGone = true
                 tvLastUpdated?.isGone = true
+                btnUpdate?.isGone = true
                 val count = adapter?.configurationIdList?.size ?: 0
-                tvNodeCount?.text = "节点数: $count"
+                tvNodeCount?.text = "$count 个节点"
                 card.isVisible = true
                 return
             }
 
             layoutTraffic?.isVisible = true
             val sub = currentGroup.subscription!!
-            tvTitle?.text = currentGroup.name ?: getString(R.string.subscription_info)
+            tvTitle?.text = currentGroup.displayName()
+
+            btnUpdate?.isVisible = true
+            btnUpdate?.setOnClickListener {
+                GroupUpdater.startUpdate(currentGroup, true)
+            }
 
             var usedBytes = 0L
             var totalBytes = 0L
@@ -3203,50 +3212,82 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             if (totalBytes > 0L) {
                 val remainBytes = (totalBytes - usedBytes).coerceAtLeast(0L)
-                val usedStr = usedBytes.toBytesString()
-                val remainStr = remainBytes.toBytesString()
-                tvTrafficStat?.text = getString(R.string.traffic_available, remainStr)
-                tvTrafficRemaining?.text = getString(R.string.traffic_used, usedStr)
+                tvTrafficStatLabel?.text = "剩余可用"
+                tvTrafficStatLabel?.isVisible = true
+                tvTrafficStat?.text = remainBytes.toBytesString()
+                tvTrafficRemaining?.text = "已用 ${usedBytes.toBytesString()} / 共 ${totalBytes.toBytesString()}"
                 tvTrafficRemaining?.isVisible = true
+                progressTraffic?.isVisible = true
+                val percent = ((usedBytes.toDouble() / totalBytes.toDouble()) * 100).toInt().coerceIn(0, 100)
+                progressTraffic?.progress = percent
+                val isExpired = expireMillis > 0L && System.currentTimeMillis() > expireMillis
+                if (isExpired || percent >= 90) {
+                    progressTraffic?.setIndicatorColor(Color.parseColor("#E53935"))
+                } else {
+                    progressTraffic?.setIndicatorColor(root.context.getColorAttr(R.attr.colorPrimary))
+                }
             } else if (usedBytes > 0L) {
-                val usedStr = usedBytes.toBytesString()
-                tvTrafficStat?.text = getString(R.string.traffic_available, getString(R.string.traffic_unlimited))
-                tvTrafficRemaining?.text = getString(R.string.traffic_used, usedStr)
+                tvTrafficStatLabel?.text = "已用流量"
+                tvTrafficStatLabel?.isVisible = true
+                tvTrafficStat?.text = usedBytes.toBytesString()
+                tvTrafficRemaining?.text = "不限总量"
                 tvTrafficRemaining?.isVisible = true
+                progressTraffic?.isGone = true
             } else if (fallbackTrafficStr != null) {
-                tvTrafficStat?.text = getString(R.string.traffic_available, fallbackTrafficStr)
+                tvTrafficStatLabel?.text = "可用流量"
+                tvTrafficStatLabel?.isVisible = true
+                tvTrafficStat?.text = fallbackTrafficStr
                 if (fallbackUsedStr != null) {
-                    tvTrafficRemaining?.text = getString(R.string.traffic_used, fallbackUsedStr)
+                    tvTrafficRemaining?.text = "已用 $fallbackUsedStr / 不限总量"
                     tvTrafficRemaining?.isVisible = true
                 } else {
-                    tvTrafficRemaining?.isGone = true
+                    tvTrafficRemaining?.text = "不限总量"
+                    tvTrafficRemaining?.isVisible = true
                 }
-            } else if (isUnlimited) {
-                tvTrafficStat?.text = getString(R.string.traffic_available, getString(R.string.traffic_unlimited))
-                tvTrafficRemaining?.isGone = true
+                progressTraffic?.isGone = true
             } else {
-                tvTrafficStat?.text = getString(R.string.traffic_available, getString(R.string.traffic_unlimited))
+                tvTrafficStatLabel?.text = "套餐流量"
+                tvTrafficStatLabel?.isVisible = true
+                tvTrafficStat?.text = "不限量"
                 tvTrafficRemaining?.isGone = true
+                progressTraffic?.isGone = true
             }
 
             if (expireMillis > 0L) {
-                val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(expireMillis))
-                tvExpire?.text = "到期: $dateStr"
+                val isExpired = System.currentTimeMillis() > expireMillis
+                val dateStr = SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(expireMillis))
+                if (isExpired) {
+                    tvExpire?.text = "已过期（$dateStr）"
+                    tvExpire?.setTextColor(Color.parseColor("#E53935"))
+                } else {
+                    tvExpire?.text = "到期时间：$dateStr"
+                    tvExpire?.setTextColor(root.context.getColorAttr(android.R.attr.textColorSecondary))
+                }
                 tvExpire?.isVisible = true
             } else if (fallbackExpireStr != null) {
-                tvExpire?.text = "到期: $fallbackExpireStr"
+                tvExpire?.text = "到期时间：$fallbackExpireStr"
+                tvExpire?.setTextColor(root.context.getColorAttr(android.R.attr.textColorSecondary))
                 tvExpire?.isVisible = true
             } else {
-                tvExpire?.text = "长期有效"
+                tvExpire?.text = "到期时间：长期有效"
+                tvExpire?.setTextColor(root.context.getColorAttr(android.R.attr.textColorSecondary))
                 tvExpire?.isVisible = true
             }
 
             val count = adapter?.configurationIdList?.size ?: 0
-            tvNodeCount?.text = "节点数: $count"
+            tvNodeCount?.text = "$count 个节点"
 
             if (sub.lastUpdated != null && sub.lastUpdated > 0) {
-                val updatedStr = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(Date(sub.lastUpdated.toLong() * 1000L))
-                tvLastUpdated?.text = "更新于: $updatedStr"
+                val seconds = sub.lastUpdated.toLong()
+                val diffSec = (System.currentTimeMillis() / 1000L) - seconds
+                val timeStr = when {
+                    diffSec < 60L -> "刚刚更新"
+                    diffSec < 3600L -> "${diffSec / 60}分钟前更新"
+                    diffSec < 86400L -> "${diffSec / 3600}小时前更新"
+                    diffSec < 30L * 86400L -> "${diffSec / 86400}天前更新"
+                    else -> "更新于 " + SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(seconds * 1000L))
+                }
+                tvLastUpdated?.text = " · $timeStr"
                 tvLastUpdated?.isVisible = true
             } else {
                 tvLastUpdated?.isGone = true

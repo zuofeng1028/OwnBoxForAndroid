@@ -53,7 +53,8 @@ fun Long.toBytesString(): String {
         this >= GB -> String.format("%.2f GiB", size / GB)
         this >= MB -> String.format("%.2f MiB", size / MB)
         this >= KB -> String.format("%.2f KiB", size / KB)
-        else -> "$this Bytes"
+        this == 0L -> "0 B"
+        else -> "$this B"
     }
 }
 

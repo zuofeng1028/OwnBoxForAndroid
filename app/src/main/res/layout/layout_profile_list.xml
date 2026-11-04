@@ -7,19 +7,20 @@
     android:orientation="vertical">
 
     <!-- Top Subscription Asset Info Card -->
+    <!-- Top Subscription Asset Info Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_subscription_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="5dp"
         android:layout_marginBottom="4dp"
         android:visibility="gone"
         tools:visibility="visible"
-        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardCornerRadius="@dimen/profile_card_corner_radius"
         app:cardElevation="0dp"
-        app:strokeWidth="1dp"
+        app:strokeWidth="@dimen/card_stroke_width"
         app:strokeColor="@color/card_stroke"
         app:cardBackgroundColor="?attr/colorSurface">
 
@@ -27,9 +28,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="10dp">
 
-            <!-- Top Header: Cloud Icon, Title, Expire Date -->
+            <!-- Row 1: Cloud Icon + Title + Expire Date -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -49,49 +53,91 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/subscription_info"
                     android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tv_expire_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="12sp"
-                    tools:text="到期: 2026-12-31" />
+                    tools:text="到期时间：2027年9月6日" />
+
             </LinearLayout>
 
-            <!-- Traffic Stats (Available / Used) -->
+            <!-- Row 2: Traffic Details (Big remaining stat + used/total + progress bar) -->
             <LinearLayout
                 android:id="@+id/layout_traffic_details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tv_traffic_stat"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    tools:text="可用流量: 91.88 GB" />
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tv_traffic_remaining"
-                    android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_traffic_stat_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="?android:attr/textColorSecondary"
+                            android:textSize="11sp"
+                            android:text="剩余可用" />
+
+                        <TextView
+                            android:id="@+id/tv_traffic_stat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:textColor="?android:attr/textColorPrimary"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            tools:text="21.94 GiB" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_traffic_remaining"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="12sp"
+                        tools:text="已用 78.18 GiB / 共 100.12 GiB" />
+
+                </LinearLayout>
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progress_traffic"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="12sp"
-                    tools:text="已用流量: 8.12 GB" />
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="2dp"
+                    android:max="100"
+                    android:visibility="gone"
+                    app:trackCornerRadius="2dp"
+                    app:trackThickness="4dp"
+                    tools:progress="35"
+                    tools:visibility="visible" />
+
             </LinearLayout>
 
-            <!-- Bottom Row: Node Count & Last Updated -->
+            <!-- Row 3: Node count + Last updated · Quick Update Button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -101,20 +147,42 @@
 
                 <TextView
                     android:id="@+id/tv_node_count"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp"
-                    tools:text="节点数: 48" />
+                    android:textSize="12sp"
+                    tools:text="57 个节点" />
 
                 <TextView
                     android:id="@+id/tv_last_updated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="?android:attr/textColorSecondary"
-                    android:textSize="11sp"
-                    tools:text="更新于: 10分钟前" />
+                    android:textSize="12sp"
+                    tools:text=" · 10分钟前更新" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_card_update"
+                    style="?attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="@string/group_update"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="12sp" />
+
             </LinearLayout>
 
         </LinearLayout>

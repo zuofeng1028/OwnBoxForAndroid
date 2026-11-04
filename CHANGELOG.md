@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.17 预览版
+
+* 全面重构主页置顶机场资产卡片为现代仪表盘排版，并支持快捷更新与精准流量展示
+
 # OwnBox for Android v26.11.3.16 预览版
 
 * 不限量订阅分组隐藏流量进度条，优化紧凑排版与展示逻辑

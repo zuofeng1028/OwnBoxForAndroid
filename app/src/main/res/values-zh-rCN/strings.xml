@@ -968,6 +968,7 @@
     <string name="cannot_edit_active_profile">当前节点正在连接，请断开后再编辑</string>
     <string name="traffic_unlimited">无限</string>
     <string name="traffic_available">可用流量: %s</string>
+    <string name="traffic_used">已用流量: %s</string>
     <string name="menu_documentation">教程文档</string>
     <string name="dashboard_tab_connections">连接</string>
     <string name="dashboard_tab_rules">规则</string>
