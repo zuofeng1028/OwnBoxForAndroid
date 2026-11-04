@@ -1,3 +1,12 @@
+# OwnBox for Android v26.11.3.11 预览版 (v26.11.3.11-preview)
+
+### 🎨 选项下拉菜单与全局界面异常“v”符号彻底根除
+* **彻底根治所有选项界面右侧异常出现的“v”字符**：
+  - **根本诱因溯源**：排查发现全局设置中的所有下拉选项（如语言切换、卡片样式、显示模式等，基于 `SimpleMenuPreference`）在为弹窗配置背景时，调用了 `mSpinner.setPopupBackgroundResource(R.drawable.bg_spinner_dropdown)`；而此前该 Drawable 中错误混合了用于输入框的指示箭头图层（`ic_spinner_dropdown_arrow`），导致所有下拉浮层列表在右侧居中位置被系统自动叠加绘制了一个倒三角 “v” 符号；
+  - **背景资源精细化拆分与隔离**：
+    - 将 `bg_spinner_dropdown` 还原为纯净的圆角卡片背景（去除所有多余指示箭头），彻底根除弹层内列表项被 “v” 字符污染、遮挡的问题；
+    - 新增专用的 `bg_spinner_box` 供独立下拉选择框使用，确保封闭状态下的输入框箭头指示与展开后的纯净弹窗各自精准适配。
+
 # OwnBox for Android v26.11.3.10 预览版 (v26.11.3.10-preview)
 
 ### 🛡️ 规则资产更新机制智能化升级（支持 GitHub 仓库直接填入与一键预设）

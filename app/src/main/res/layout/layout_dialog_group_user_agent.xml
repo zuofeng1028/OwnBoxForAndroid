@@ -23,7 +23,7 @@
         android:layout_marginBottom="16dp"
         android:paddingStart="14dp"
         android:paddingEnd="40dp"
-        android:background="@drawable/bg_spinner_dropdown" />
+        android:background="@drawable/bg_spinner_box" />
 
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
