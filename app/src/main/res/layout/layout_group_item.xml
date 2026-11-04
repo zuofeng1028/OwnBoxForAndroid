@@ -152,8 +152,8 @@
                 android:paddingEnd="8dp"
                 android:paddingTop="0dp"
                 android:paddingBottom="0dp"
-                app:insetTop="0dp"
-                app:insetBottom="0dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 android:text="@string/group_update"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp" />
