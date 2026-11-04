@@ -33,7 +33,9 @@ import kotlinx.coroutines.supervisorScope
 import moe.matsuri.nb4a.utils.Util
 import moe.matsuri.nb4a.utils.toBytesString
 import java.lang.NumberFormatException
+import java.text.SimpleDateFormat
 import java.util.*
+import android.graphics.Color
 
 class GroupFragment : ToolbarFragment(R.layout.layout_group),
     Toolbar.OnMenuItemClickListener {
@@ -364,6 +366,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         val groupName = binding.groupName
         val groupStatus = binding.groupStatus
         val groupTraffic = binding.groupTraffic
+        val groupTrafficProgress = binding.groupTrafficProgress
         val groupUser = binding.groupUser
         val editButton = binding.edit
         val optionsButton = binding.options
@@ -470,6 +473,95 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             return true
         }
 
+        private fun formatRelativeTime(seconds: Long): String {
+            if (seconds <= 0L) return getString(R.string.group_status_empty_subscription)
+            val diffSec = (System.currentTimeMillis() / 1000L) - seconds
+            return when {
+                diffSec < 60L -> "刚刚"
+                diffSec < 3600L -> "${diffSec / 60} 分钟前"
+                diffSec < 86400L -> "${diffSec / 3600} 小时前"
+                diffSec < 30L * 86400L -> "${diffSec / 86400} 天前"
+                else -> SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(seconds * 1000L))
+            }
+        }
+
+        private fun renderSubscriptionInfo(
+            expireMillis: Long,
+            usedBytes: Long,
+            totalBytes: Long,
+            lastUpdatedSec: Long,
+            fallbackTrafficStr: String? = null,
+            fallbackUsedStr: String? = null
+        ) {
+            val secondaryColor = itemView.context.getColorAttr(android.R.attr.textColorSecondary)
+            val isExpired = expireMillis > 0L && System.currentTimeMillis() > expireMillis
+
+            if (expireMillis > 0L) {
+                val dateStr = SimpleDateFormat("yyyy年M月d日", Locale.getDefault()).format(Date(expireMillis))
+                if (isExpired) {
+                    groupUser.text = "· 已过期（到期时间：$dateStr）"
+                    groupUser.setTextColor(Color.parseColor("#E53935"))
+                } else {
+                    groupUser.text = "· 到期时间：$dateStr"
+                    groupUser.setTextColor(secondaryColor)
+                }
+            } else {
+                groupUser.text = "· 到期时间：长期有效"
+                groupUser.setTextColor(secondaryColor)
+            }
+
+            groupTrafficProgress.isVisible = true
+            if (totalBytes > 0L) {
+                val percent = ((usedBytes.toDouble() / totalBytes.toDouble()) * 100).toInt().coerceIn(0, 100)
+                groupTrafficProgress.progress = percent
+                if (isExpired || percent >= 90) {
+                    groupTrafficProgress.setIndicatorColor(Color.parseColor("#E53935"))
+                } else {
+                    groupTrafficProgress.setIndicatorColor(itemView.context.getColorAttr(R.attr.colorPrimary))
+                }
+            } else {
+                groupTrafficProgress.progress = 0
+                if (isExpired) {
+                    groupTrafficProgress.setIndicatorColor(Color.parseColor("#E53935"))
+                } else {
+                    groupTrafficProgress.setIndicatorColor(itemView.context.getColorAttr(R.attr.colorPrimary))
+                }
+            }
+
+            val usageStr = if (totalBytes > 0L) {
+                "${usedBytes.toBytesString()} / ${totalBytes.toBytesString()}"
+            } else if (usedBytes > 0L) {
+                "${usedBytes.toBytesString()} / 不限量"
+            } else if (fallbackTrafficStr != null) {
+                if (fallbackUsedStr != null) "$fallbackUsedStr / $fallbackTrafficStr" else fallbackTrafficStr
+            } else {
+                "不限量"
+            }
+
+            val timeStr = if (lastUpdatedSec > 0L) {
+                formatRelativeTime(lastUpdatedSec)
+            } else {
+                getString(R.string.group_status_empty_subscription)
+            }
+
+            groupStatus.text = if (totalBytes > 0L || usedBytes > 0L || fallbackTrafficStr != null || lastUpdatedSec > 0L) {
+                "$usageStr · $timeStr"
+            } else {
+                getString(R.string.group_status_empty_subscription)
+            }
+        }
+
+        private fun renderBasicInfo(size: Long) {
+            val secondaryColor = itemView.context.getColorAttr(android.R.attr.textColorSecondary)
+            groupUser.text = "· 本地配置"
+            groupUser.setTextColor(secondaryColor)
+            groupTrafficProgress.isGone = true
+            groupStatus.text = if (size == 0L) {
+                getString(R.string.group_status_empty)
+            } else {
+                getString(R.string.group_status_proxies, size)
+            }
+        }
 
         fun bind(group: ProxyGroup) {
             proxyGroup = group
@@ -510,10 +602,6 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             if (proxyGroup.id in GroupUpdater.updating) {
-                (groupName.parent as LinearLayout).apply {
-                    setPadding(paddingLeft, dp2px(11), paddingRight, paddingBottom)
-                }
-
                 subscriptionUpdateProgress.isVisible = true
 
                 if (!GroupUpdater.progress.containsKey(proxyGroup.id)) {
@@ -529,115 +617,104 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 updateButton.isInvisible = true
                 editButton.isGone = true
             } else {
-                (groupName.parent as LinearLayout).apply {
-                    setPadding(paddingLeft, dp2px(15), paddingRight, paddingBottom)
-                }
-
                 subscriptionUpdateProgress.isVisible = false
                 updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
                 editButton.isVisible = true
             }
 
-            val subscription = proxyGroup.subscription
-            if (subscription != null && subscription.bytesUsed > 0L) { // SIP008 & Open Online Config
-                groupTraffic.isVisible = true
-                groupTraffic.text = if (subscription.bytesRemaining > 0L) {
-                    app.getString(
-                        R.string.subscription_traffic, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        ), Formatter.formatFileSize(
-                            app, subscription.bytesRemaining
-                        )
-                    )
-                } else {
-                    app.getString(
-                        R.string.subscription_used, Formatter.formatFileSize(
-                            app, subscription.bytesUsed
-                        )
-                    )
-                }
-                groupStatus.setPadding(0)
-            } else if (subscription != null && !subscription.subscriptionUserinfo.isNullOrBlank()) { // Raw
-                var text = ""
+            if (proxyGroup.type == GroupType.SUBSCRIPTION) {
+                val subscription = proxyGroup.subscription
+                var usedBytes = 0L
+                var totalBytes = 0L
+                var expireMillis = 0L
+                val lastUpdatedSec = subscription?.lastUpdated?.toLong() ?: 0L
 
-                fun get(regex: String): String? {
-                    return Regex(regex, RegexOption.IGNORE_CASE).findAll(subscription.subscriptionUserinfo).mapNotNull {
-                        if (it.groupValues.size > 1) it.groupValues[1] else null
-                    }.firstOrNull()
-                }
-
-                try {
-                    var used: Long = 0
-                    get("upload=([0-9]+)")?.apply {
-                        used += toLong()
-                    }
-                    get("download=([0-9]+)")?.apply {
-                        used += toLong()
-                    }
-                    val total = get("total=([0-9]+)")?.toLong() ?: 0
-                    val remain = total - used
-                    if (used > 0 || total > 0) {
-                        text += if (remain > 0) {
-                            getString(
-                                R.string.subscription_traffic,
-                                used.toBytesString(),
-                                remain.toBytesString()
-                            )
-                        } else {
-                            getString(R.string.subscription_used, used.toBytesString())
+                if (subscription != null) {
+                    if (!subscription.subscriptionUserinfo.isNullOrBlank()) {
+                        val info = subscription.subscriptionUserinfo
+                        fun extract(pattern: String): Long {
+                            return Regex(pattern, RegexOption.IGNORE_CASE).find(info)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
+                        }
+                        val up = extract("upload=([0-9]+)")
+                        val down = extract("download=([0-9]+)")
+                        usedBytes = up + down
+                        totalBytes = extract("total=([0-9]+)")
+                        val exp = extract("expire=([0-9]+)")
+                        if (exp > 0L) {
+                            expireMillis = if (exp > 100_000_000_000L) exp else exp * 1000L
+                        }
+                    } else if (subscription.bytesUsed != null || subscription.bytesRemaining != null) {
+                        usedBytes = subscription.bytesUsed ?: 0L
+                        totalBytes = (subscription.bytesUsed ?: 0L) + (subscription.bytesRemaining ?: 0L)
+                        if (subscription.expiryDate != null && subscription.expiryDate > 0) {
+                            val exp = subscription.expiryDate.toLong()
+                            expireMillis = if (exp > 100_000_000_000L) exp else exp * 1000L
                         }
                     }
-                    get("expire=([0-9]+)")?.apply {
-                        text += "\n"
-                        text += getString(
-                            R.string.subscription_expire,
-                            Util.timeStamp2Text(this.toLong() * 1000)
-                        )
-                    }
-                } catch (_: NumberFormatException) {
-                    // ignore
                 }
 
-                if (text.isNotEmpty()) {
-                    groupTraffic.isVisible = true
-                    groupTraffic.text = text
-                    groupStatus.setPadding(0)
+                renderSubscriptionInfo(expireMillis, usedBytes, totalBytes, lastUpdatedSec)
+
+                runOnDefaultDispatcher {
+                    val size = SagerDatabase.proxyDao.countByGroup(group.id)
+                    var fallbackExpireMillis = expireMillis
+                    var fallbackTrafficStr: String? = null
+                    var fallbackUsedStr: String? = null
+
+                    if (usedBytes == 0L && totalBytes == 0L && expireMillis <= 0L && size > 0L) {
+                        val expireRegex = Regex(".*(?:套餐到期|到期时间|过期时间|到期)[：:]\\s*([0-9]{4}[-/][0-9]{2}[-/][0-9]{2})", RegexOption.IGNORE_CASE)
+                        val trafficRegex = Regex(".*(?:剩余流量|可用流量|剩余)[：:]\\s*([0-9.]+\\s*[KMGT]?B|无限|不限|不限量)", RegexOption.IGNORE_CASE)
+                        val usedRegex = Regex(".*(?:已用流量|已用|已使用)[：:]\\s*([0-9.]+\\s*[KMGT]?B)", RegexOption.IGNORE_CASE)
+                        val allGroupProfiles = SagerDatabase.proxyDao.getByGroup(group.id)
+                        for (p in allGroupProfiles) {
+                            val name = p.displayName()
+                            if (fallbackExpireMillis <= 0L) {
+                                val m = expireRegex.find(name)
+                                if (m != null) {
+                                    try {
+                                        val dateStr = m.groupValues[1].replace('/', '-')
+                                        fallbackExpireMillis = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)?.time ?: 0L
+                                    } catch (_: Throwable) {}
+                                }
+                            }
+                            if (fallbackTrafficStr == null) {
+                                val m = trafficRegex.find(name)
+                                if (m != null) {
+                                    fallbackTrafficStr = m.groupValues[1].trim()
+                                }
+                            }
+                            if (fallbackUsedStr == null) {
+                                val m = usedRegex.find(name)
+                                if (m != null) {
+                                    fallbackUsedStr = m.groupValues[1].trim()
+                                }
+                            }
+                        }
+                    }
+
+                    if (fallbackExpireMillis != expireMillis || fallbackTrafficStr != null || fallbackUsedStr != null) {
+                        onMainDispatcher {
+                            if (proxyGroup.id != group.id) return@onMainDispatcher
+                            renderSubscriptionInfo(
+                                fallbackExpireMillis,
+                                usedBytes,
+                                totalBytes,
+                                lastUpdatedSec,
+                                fallbackTrafficStr,
+                                fallbackUsedStr
+                            )
+                        }
+                    }
                 }
             } else {
-                groupTraffic.isVisible = false
-                groupStatus.setPadding(0, 0, 0, dp2px(4))
-            }
-
-            groupUser.text = subscription?.username ?: ""
-
-            runOnDefaultDispatcher {
-                val size = SagerDatabase.proxyDao.countByGroup(group.id)
-                onMainDispatcher {
-                    @Suppress("DEPRECATION") when (group.type) {
-                        GroupType.BASIC -> {
-                            if (size == 0L) {
-                                groupStatus.setText(R.string.group_status_empty)
-                            } else {
-                                groupStatus.text = getString(R.string.group_status_proxies, size)
-                            }
-                        }
-
-                        GroupType.SUBSCRIPTION -> {
-                            groupStatus.text = if (size == 0L) {
-                                getString(R.string.group_status_empty_subscription)
-                            } else {
-                                val date = Date(group.subscription!!.lastUpdated * 1000L)
-                                getString(
-                                    R.string.group_status_proxies_subscription,
-                                    size,
-                                    "${date.month + 1} - ${date.date}"
-                                )
-                            }
-
-                        }
+                renderBasicInfo(0L)
+                runOnDefaultDispatcher {
+                    val size = SagerDatabase.proxyDao.countByGroup(group.id)
+                    onMainDispatcher {
+                        if (proxyGroup.id != group.id) return@onMainDispatcher
+                        renderBasicInfo(size)
                     }
                 }
-
             }
 
         }

@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.14 预览版
+
+* 全面重构分组列表卡片排版，新增流量进度条并优化到期时间与用量展示
+
 # OwnBox for Android v26.11.3.13 预览版
 
 * 优化分组栏长按直达交互、滑动条显示及外观菜单小标题对比度
