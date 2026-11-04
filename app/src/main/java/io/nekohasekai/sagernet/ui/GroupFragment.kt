@@ -570,7 +570,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
 
             val isDisabled = DataStore.isGroupDisabled(proxyGroup.id)
             editButton.isVisible = true
-            updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
+            updateButton.isVisible = proxyGroup.type == GroupType.SUBSCRIPTION
             groupName.text = if (isDisabled) "${proxyGroup.displayName()} ${getString(R.string.group_disabled_status)}" else proxyGroup.displayName()
             itemView.alpha = if (isDisabled) 0.6f else 1.0f
 
@@ -618,7 +618,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                 editButton.isGone = true
             } else {
                 subscriptionUpdateProgress.isVisible = false
-                updateButton.isInvisible = proxyGroup.type != GroupType.SUBSCRIPTION
+                updateButton.isVisible = proxyGroup.type == GroupType.SUBSCRIPTION
                 editButton.isVisible = true
             }
 
