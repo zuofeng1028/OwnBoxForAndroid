@@ -174,7 +174,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var rulesUpdateInterval by configurationStore.string(Key.RULES_UPDATE_INTERVAL) { "0" } // 默认为0，不自动更新
     var activeGeoipDb by configurationStore.string("active_geoip_db") { "geoip.db" }
     var activeGeositeDb by configurationStore.string("active_geosite_db") { "geosite.db" }
-    fun getAssetUpdateUrl(fileName: String): String = configurationStore.getString("asset_url_$fileName", "")
+    fun getAssetUpdateUrl(fileName: String): String = configurationStore.getString("asset_url_$fileName", "") ?: ""
     fun setAssetUpdateUrl(fileName: String, url: String) = configurationStore.putString("asset_url_$fileName", url)
     var customRuleSets by configurationStore.stringSet("custom_rule_sets") { emptySet() }
 

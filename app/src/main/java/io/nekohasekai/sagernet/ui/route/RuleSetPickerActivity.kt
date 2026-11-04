@@ -437,20 +437,21 @@ class RuleSetPickerActivity : ThemedActivity() {
             }
 
             binding.root.setOnLongClickListener {
-                if (row.kind == Kind.LOCAL && row.file != null && row.file.isFile) {
+                val targetFile = row.file
+                if (row.kind == Kind.LOCAL && targetFile != null && targetFile.isFile) {
                     MaterialAlertDialogBuilder(this@RuleSetPickerActivity)
-                        .setTitle(R.string.action_delete)
-                        .setMessage(getString(R.string.rule_set_delete_confirm, row.file.name))
+                        .setTitle(R.string.delete)
+                        .setMessage(getString(R.string.rule_set_delete_confirm))
                         .setPositiveButton(android.R.string.ok) { _, _ ->
-                            row.file.delete()
+                            targetFile.delete()
                             selected.remove(row.entry)
-                            selected.remove(row.file.name)
+                            selected.remove(targetFile.name)
                             val set = DataStore.customRuleSets.toMutableSet()
-                            set.remove(row.file.name)
+                            set.remove(targetFile.name)
                             DataStore.customRuleSets = set
                             updateSubtitle()
                             rebuild()
-                            Toast.makeText(this@RuleSetPickerActivity, "已删除 ${row.file.name}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@RuleSetPickerActivity, "已删除 ${targetFile.name}", Toast.LENGTH_SHORT).show()
                         }
                         .setNegativeButton(android.R.string.cancel, null)
                         .show()

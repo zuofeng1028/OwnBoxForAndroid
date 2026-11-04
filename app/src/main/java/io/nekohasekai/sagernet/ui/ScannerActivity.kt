@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ui
 
+import android.view.ViewGroup
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.ShortcutManager
@@ -56,11 +58,13 @@ class ScannerActivity : ThemedActivity(),
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            binding.ivFlashlight.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = dp2px(32) + navBars.bottom
+            (binding.ivFlashlight.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                lp.bottomMargin = dp2px(32) + navBars.bottom
+                binding.ivFlashlight.layoutParams = lp
             }
-            binding.ivPhotoLibrary.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = dp2px(32) + navBars.bottom
+            (binding.ivPhotoLibrary.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                lp.bottomMargin = dp2px(32) + navBars.bottom
+                binding.ivPhotoLibrary.layoutParams = lp
             }
             insets
         }
