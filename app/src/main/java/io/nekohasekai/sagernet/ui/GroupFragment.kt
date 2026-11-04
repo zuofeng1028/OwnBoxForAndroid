@@ -119,6 +119,18 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
         groupListView.updatePadding(bottom = dp2px(if (DataStore.showBottomBar) 80 else 4))
     }
 
+    private var lastCompactGroupCards: Boolean? = null
+
+    override fun onResume() {
+        super.onResume()
+        if (::groupAdapter.isInitialized) {
+            if (lastCompactGroupCards != null && lastCompactGroupCards != DataStore.compactGroupCards) {
+                groupAdapter.notifyDataSetChanged()
+            }
+            lastCompactGroupCards = DataStore.compactGroupCards
+        }
+    }
+
     override fun onMenuItemClick(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_new_group -> {
@@ -618,6 +630,24 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
             }
 
             if (proxyGroup.type == GroupType.SUBSCRIPTION) {
+                if (!DataStore.compactGroupCards) {
+                    groupTrafficProgress.isGone = true
+                    val subscription = proxyGroup.subscription
+                    groupUser.text = subscription?.link.orEmpty()
+                    groupUser.setTextColor(itemView.context.getColorAttr(android.R.attr.textColorSecondary))
+                    runOnDefaultDispatcher {
+                        val size = SagerDatabase.proxyDao.countByGroup(group.id)
+                        val timeStr = if (subscription?.lastUpdated != null && subscription.lastUpdated > 0) {
+                            formatRelativeTime(subscription.lastUpdated.toLong())
+                        } else ""
+                        val countStr = getString(R.string.group_status_proxies, size)
+                        onMainDispatcher {
+                            groupStatus.text = if (timeStr.isNotEmpty()) "$countStr · $timeStr" else countStr
+                        }
+                    }
+                    return
+                }
+
                 val subscription = proxyGroup.subscription
                 var usedBytes = 0L
                 var totalBytes = 0L

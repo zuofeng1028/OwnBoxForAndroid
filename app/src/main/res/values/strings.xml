@@ -1311,4 +1311,9 @@
     <string name="asset_preset_sagernet">SagerNet (Official)</string>
     <string name="asset_update_html_error">The downloaded content is a webpage or 404 page, not a rule database. Existing file preserved.</string>
     <string name="asset_update_empty_error">The downloaded file is empty or corrupted. Existing file preserved.</string>
+    <string name="cag_profile_list">Profile List</string>
+    <string name="compact_profile_rows">Compact Profile Rows</string>
+    <string name="compact_profile_rows_sum">Each profile is a single row with only name and latency</string>
+    <string name="compact_group_cards">Compact Group Cards</string>
+    <string name="compact_group_cards_sum">Use quota bar and remaining time instead of subscription link and details</string>
 </resources>

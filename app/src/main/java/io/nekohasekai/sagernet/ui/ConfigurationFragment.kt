@@ -46,6 +46,7 @@ import androidx.core.view.GravityCompat
 import android.view.Gravity
 import androidx.core.widget.addTextChangedListener
 import io.nekohasekai.sagernet.utils.Theme
+import io.nekohasekai.sagernet.utils.CountryFlagUtils
 import kotlinx.coroutines.delay
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -2896,8 +2897,17 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+        private var lastCompactProfileRows: Boolean? = null
+
         override fun onResume() {
             super.onResume()
+
+            if (::configurationListView.isInitialized) {
+                if (lastCompactProfileRows != null && lastCompactProfileRows != DataStore.compactProfileRows) {
+                    configurationListView.adapter = adapter
+                }
+                lastCompactProfileRows = DataStore.compactProfileRows
+            }
 
             if (::configurationListView.isInitialized && configurationListView.size == 0) {
                 configurationListView.adapter = adapter
@@ -3432,13 +3442,18 @@ class ConfigurationFragment @JvmOverloads constructor(
                 return false
             }
 
+            override fun getItemViewType(position: Int): Int {
+                return if (DataStore.compactProfileRows) 1 else 0
+            }
+
             override fun onCreateViewHolder(
                 parent: ViewGroup,
                 viewType: Int,
             ): ConfigurationHolder {
+                val layoutRes = if (viewType == 1) R.layout.layout_profile_compact else R.layout.layout_profile
                 return ConfigurationHolder(
                     LayoutInflater.from(parent.context)
-                        .inflate(R.layout.layout_profile, parent, false)
+                        .inflate(layoutRes, parent, false)
                 )
             }
 
@@ -4194,6 +4209,49 @@ class ConfigurationFragment @JvmOverloads constructor(
                 showTraffic: Boolean,
                 speedTestText: String?,
             ) {
+                if (DataStore.compactProfileRows) {
+                    val secondary = requireContext().getColorAttr(android.R.attr.textColorSecondary)
+                    val text = SpannableStringBuilder()
+                    fun appendPart(value: CharSequence?, color: Int) {
+                        if (value.isNullOrEmpty()) return
+                        if (text.isNotEmpty()) text.append(' ')
+                        val start = text.length
+                        text.append(value)
+                        text.setSpan(ForegroundColorSpan(color), start, text.length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                    }
+
+                    if (speedTestText != null) {
+                        appendPart(speedTestText, secondary)
+                    } else {
+                        when (proxyEntity.status) {
+                            1 -> {
+                                val ping = proxyEntity.ping
+                                val bean = proxyEntity.requireBean()
+                                val flag = CountryFlagUtils.getFlag(bean.displayName())
+                                val pingStr = if (flag != null && !CountryFlagUtils.hasFlag(bean.displayName())) {
+                                    "$flag $ping ms"
+                                } else {
+                                    "$ping ms"
+                                }
+                                val color = when {
+                                    ping <= 0 -> secondary
+                                    ping < 300 -> requireContext().getColour(R.color.material_green_500)
+                                    ping < 800 -> Color.parseColor("#FFA000")
+                                    else -> requireContext().getColour(R.color.material_red_500)
+                                }
+                                appendPart(pingStr, color)
+                            }
+                            2, 3 -> {
+                                appendPart(getString(R.string.unavailable), requireContext().getColour(R.color.material_red_500))
+                            }
+                            else -> {}
+                        }
+                    }
+                    profileStatus.text = text
+                    profileStatus.isVisible = text.isNotEmpty()
+                    return
+                }
+
                 val text = SpannableStringBuilder()
                 fun appendPart(value: CharSequence?, color: Int) {
                     if (value.isNullOrEmpty()) return
@@ -4240,6 +4298,48 @@ class ConfigurationFragment @JvmOverloads constructor(
                 val bean = proxyEntity.requireBean()
 
                 profileName.text = bean.displayName()
+
+                val isCompactRow = DataStore.compactProfileRows
+                if (isCompactRow) {
+                    profileType.isGone = true
+                    profileAddress.isGone = true
+                    trafficText.isGone = true
+                    val middleRow = trafficText.parent as? LinearLayout
+                    middleRow?.isGone = true
+                    lastSelfHasMiddleRow = false
+                    editButton.isGone = true
+                    shareLayout.isGone = true
+                    removeButton.isGone = true
+                    doubleColumnMenuButton.isVisible = !select
+
+                    val live = adapter?.liveSpeedTests?.get(proxyEntity.id)
+                    val liveText = if (live != null && !live.done) {
+                        when (live.stage) {
+                            SpeedTestQueueRunner.STAGE_DOWNLOAD -> {
+                                val mbps = live.downloadBitsPerSecond / 1_000_000.0
+                                String.format(Locale.ROOT, "↓%.1fM", mbps)
+                            }
+                            SpeedTestQueueRunner.STAGE_UPLOAD -> {
+                                val mbps = live.uploadBitsPerSecond / 1_000_000.0
+                                String.format(Locale.ROOT, "↑%.1fM", mbps)
+                            }
+                            else -> null
+                        }
+                    } else null
+                    val speedTestText = liveText ?: speedTestResultText(proxyEntity, true)
+
+                    bindTestResult(proxyEntity, false, speedTestText)
+
+                    val selected = pf.isSelectedProfile(proxyEntity.id)
+                    val started = selected && DataStore.serviceState.started && pf.isCurrentProfile(proxyEntity.id)
+                    editButton.isEnabled = !started
+                    removeButton.isEnabled = !started
+                    applySelected(selected)
+
+                    lastBoundTx = proxyEntity.tx
+                    lastBoundRx = proxyEntity.rx
+                    return
+                }
                 profileType.text = proxyEntity.displayType()
                 val protocolColor = requireContext().getProtocolColor(proxyEntity.type)
                 val chipBg = android.graphics.drawable.GradientDrawable().apply {

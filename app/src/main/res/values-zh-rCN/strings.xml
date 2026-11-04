@@ -1229,4 +1229,9 @@
     <string name="asset_preset_sagernet">SagerNet (官方)</string>
     <string name="asset_update_html_error">下载返回的是网页或 404 页面，而非规则数据库文件。已自动保护现有文件未被覆盖。</string>
     <string name="asset_update_empty_error">下载文件为空或异常，已保护本地文件。</string>
+    <string name="cag_profile_list">配置列表</string>
+    <string name="compact_profile_rows">紧凑配置行</string>
+    <string name="compact_profile_rows_sum">每个配置只显示为一行，仅含名称和延迟</string>
+    <string name="compact_group_cards">紧凑分组卡片</string>
+    <string name="compact_group_cards_sum">以用量进度条和剩余时间代替订阅链接与详细信息</string>
 </resources>

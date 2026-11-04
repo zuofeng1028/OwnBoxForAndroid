@@ -368,6 +368,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         SagerNet.application.getString(R.string.default_simple_download_url)
     }
     var alwaysShowAddress by configurationStore.boolean(Key.ALWAYS_SHOW_ADDRESS)
+    var compactProfileRows by configurationStore.boolean(Key.COMPACT_PROFILE_ROWS)
+    var compactGroupCards by configurationStore.boolean(Key.COMPACT_GROUP_CARDS) { true }
 
     var tunImplementation: Int
         get() = TunImplementation.SING_TUN

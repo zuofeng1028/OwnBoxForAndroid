@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.18 预览版
+
+* 收窄主页置顶资产卡片高度，新增紧凑配置行与紧凑分组卡片外观选项
+
 # OwnBox for Android v26.11.3.17 预览版
 
 * 全面重构主页置顶机场资产卡片为现代仪表盘排版，并支持快捷更新与精准流量展示

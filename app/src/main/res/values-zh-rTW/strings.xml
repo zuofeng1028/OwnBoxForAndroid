@@ -874,4 +874,9 @@
     <string name="route_rule_advanced_count">進階 (已設定%1$d項)</string>
     <string name="ui_scale_settings_title">介面與字體大小</string>
     <string name="ui_scale_settings_summary">調節全域介面與字體比例、忽略系統大字體、分區自訂按鈕/選單/卡片大小</string>
+    <string name="cag_profile_list">設定檔列表</string>
+    <string name="compact_profile_rows">緊湊設定檔行</string>
+    <string name="compact_profile_rows_sum">每個設定檔只顯示为一行，僅含名稱和延遲</string>
+    <string name="compact_group_cards">緊湊分組卡片</string>
+    <string name="compact_group_cards_sum">以用量進度條和剩餘時間代替訂閱連結與詳細資訊</string>
 </resources>
