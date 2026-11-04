@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.20 预览版
+
+* 收窄左侧侧边栏宽度，优化抽屉菜单项间距与视觉留白
+
 # OwnBox for Android v26.11.3.19 预览版
 
 * 优化紧凑配置行仅展示延迟数值，默认启用紧凑分组卡片并精简外观设置

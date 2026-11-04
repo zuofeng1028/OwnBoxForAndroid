@@ -149,9 +149,10 @@ class MainActivity : ThemedActivity(),
             binding.drawerLayout.removeView(binding.navView)
         }
         val drawerFactor = UiScaleManager.drawerFactor()
+        val baseDrawerWidthDp = 265f
         val drawerWidth = minOf(
-            (320 * resources.displayMetrics.density * drawerFactor.coerceIn(0.8f, 1.15f)).toInt(),
-            resources.displayMetrics.widthPixels - (56 * resources.displayMetrics.density).toInt(),
+            (baseDrawerWidthDp * resources.displayMetrics.density * drawerFactor.coerceIn(0.8f, 1.15f)).toInt(),
+            resources.displayMetrics.widthPixels - (72 * resources.displayMetrics.density).toInt(),
         )
         drawerRoot.layoutParams = drawerRoot.layoutParams.apply { width = drawerWidth }
         if (drawerFactor != 1.0f) {
@@ -637,7 +638,7 @@ class MainActivity : ThemedActivity(),
         val rowHeight = (dp(50) * drawerFactor).toInt().coerceIn(dp(34), dp(68))
         val iconSize = (dp(24) * drawerFactor).toInt().coerceIn(dp(16), dp(34))
         val groupGap = (dp(14) * drawerFactor).toInt().coerceAtLeast(dp(6))
-        val titleGap = (dp(20) * drawerFactor).toInt().coerceAtLeast(dp(10))
+        val titleGap = (dp(16) * drawerFactor).toInt().coerceAtLeast(dp(10))
         var previousGroup: Int? = null
         val menu = navigation.menu
         for (index in 0 until menu.size()) {
