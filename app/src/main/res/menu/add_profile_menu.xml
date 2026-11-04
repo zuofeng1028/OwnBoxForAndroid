@@ -165,8 +165,8 @@
                     android:title="@string/sort_and_layout">
                     <menu>
                         <item
-                            android:title="@string/group_order"
-                            android:enabled="false" />
+                            android:id="@+id/action_header_order"
+                            android:title="@string/group_order" />
                         <group android:id="@+id/order_group" android:checkableBehavior="single">
                             <item
                                 android:id="@+id/action_order_origin"
@@ -179,8 +179,8 @@
                                 android:title="@string/group_order_by_delay" />
                         </group>
                         <item
-                            android:title="@string/layout"
-                            android:enabled="false" />
+                            android:id="@+id/action_header_layout"
+                            android:title="@string/layout" />
                         <group android:id="@+id/layout_group" android:checkableBehavior="single">
                             <item
                                 android:id="@+id/action_layout_single"
@@ -190,8 +190,8 @@
                                 android:title="@string/layout_double_column" />
                         </group>
                         <item
-                            android:title="@string/card_style"
-                            android:enabled="false" />
+                            android:id="@+id/action_header_card_style"
+                            android:title="@string/card_style" />
                         <group android:id="@+id/card_style_group" android:checkableBehavior="single">
                             <item
                                 android:id="@+id/action_card_style_classic"
@@ -201,8 +201,8 @@
                                 android:title="@string/card_style_stroke" />
                         </group>
                         <item
-                            android:title="@string/card_view_mode"
-                            android:enabled="false" />
+                            android:id="@+id/action_header_card_view_mode"
+                            android:title="@string/card_view_mode" />
                         <group android:id="@+id/card_view_mode_group" android:checkableBehavior="single">
                             <item
                                 android:id="@+id/action_view_mode_detailed"

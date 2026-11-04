@@ -9,10 +9,12 @@ import android.view.inputmethod.InputMethodManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
 import android.text.format.Formatter
 import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -458,19 +460,26 @@ class ConfigurationFragment @JvmOverloads constructor(
         return true
     }
 
-    private fun showGroupSettingsConfirmDialog(group: ProxyGroup) {
-        if (!isAdded || isDetached) return
+    fun styleSortAndLayoutHeaders(menu: Menu) {
         val ctx = context ?: return
-        MaterialAlertDialogBuilder(ctx)
-            .setTitle(R.string.enter_group_settings_title)
-            .setMessage(getString(R.string.enter_group_settings_message, group.displayName()))
-            .setPositiveButton(R.string.enter) { _, _ ->
-                startActivity(Intent(ctx, GroupSettingsActivity::class.java).apply {
-                    putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
-                })
+        val primaryColor = ctx.getColorAttr(R.attr.colorPrimary)
+        val headerIds = intArrayOf(
+            R.id.action_header_order,
+            R.id.action_header_layout,
+            R.id.action_header_card_style,
+            R.id.action_header_card_view_mode,
+        )
+        for (id in headerIds) {
+            val item = menu.findItem(id) ?: continue
+            item.isEnabled = true
+            item.setOnMenuItemClickListener { true }
+            val rawTitle = item.title?.toString() ?: continue
+            val spannable = SpannableString(rawTitle).apply {
+                setSpan(ForegroundColorSpan(primaryColor), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(StyleSpan(Typeface.BOLD), 0, length, SPAN_EXCLUSIVE_EXCLUSIVE)
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            item.title = spannable
+        }
     }
 
     private fun tintMenuIcons(menu: Menu, color: Int) {
@@ -901,6 +910,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         val primaryTextColor = requireContext().getColorAttr(android.R.attr.textColorPrimary)
         if (!select) {
             toolbar.inflateMenu(R.menu.add_profile_menu)
+            styleSortAndLayoutHeaders(toolbar.menu)
             toolbar.menu.findItem(R.id.action_global_mode)?.isChecked = DataStore.globalMode
             toolbar.setOnMenuItemClickListener(this)
             tintMenuIcons(toolbar.menu, primaryTextColor)
@@ -1126,12 +1136,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                             val pos = tab.position
                             if (pos in 0 until adapter.groupList.size) {
                                 val group = adapter.groupList[pos]
-                                // Skip "All" sentinel tab and ungrouped tabs
-                                if (!group.ungrouped && group.id != ALL_GROUPS_SENTINEL_ID) {
+                                if (group.id > 0L && group.id != ALL_GROUPS_SENTINEL_ID) {
                                     if (DataStore.hapticFeedback) {
                                         v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                                     }
-                                    showGroupSettingsConfirmDialog(group)
+                                    val ctx = context ?: return@Runnable
+                                    startActivity(Intent(ctx, GroupSettingsActivity::class.java).apply {
+                                        putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
+                                    })
                                 }
                             }
                         }
@@ -2908,6 +2920,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             val pf = requireParentFragment() as? ToolbarFragment ?: return
             val menu = pf.toolbar.menu
+            (pf as? ConfigurationFragment)?.styleSortAndLayoutHeaders(menu)
             menu.findItem(R.id.action_hide_unavailable)?.isChecked = DataStore.hideUnavailableProfiles
             val origin = menu.findItem(R.id.action_order_origin)
             val byName = menu.findItem(R.id.action_order_by_name)
