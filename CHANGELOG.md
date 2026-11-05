@@ -1,5 +1,10 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.25 预览版
+
+* 优化右上角功能菜单为 Material 3 / Telegram 同款 24dp 饱满大圆角，呼应节点卡片圆润美感
+* 新增菜单右侧 6dp 悬浮浮空留白与内部 6dp 垂直呼吸内边距，呈现完整四个圆角包裹与优雅质感
+
 # OwnBox for Android v26.11.3.24 预览版
 
 * 优化顶部双胶囊分组切换器：外层大胶囊左右外边距与下方节点卡片严丝合缝垂直对齐 (8dp)
