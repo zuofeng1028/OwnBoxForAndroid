@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory app:title="@string/advanced_settings">
+    <PreferenceCategory app:title="@string/cag_advanced_network">
 
         <io.nekohasekai.sagernet.widget.SubscriptionUserAgentPreference
             app:icon="@drawable/ic_baseline_http_24"
@@ -28,6 +28,16 @@
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
+            app:icon="@drawable/baseline_developer_board_24"
+            app:key="acquireWakeLock"
+            app:summary="@string/acquire_wake_lock_summary"
+            app:title="@string/acquire_wake_lock" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/cag_advanced_security">
+
+        <SwitchPreferenceCompat
             app:icon="@drawable/ic_action_lock_open"
             app:key="globalAllowInsecure"
             app:title="@string/global_allow_insecure" />
@@ -45,18 +55,16 @@
             app:title="@string/app_tls_version"
             app:useSimpleSummaryProvider="true" />
 
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/cag_advanced_diagnostics">
+
         <SwitchPreferenceCompat
             app:defaultValue="false"
             app:icon="@drawable/ic_baseline_speed_24"
             app:key="performancePriorityMode"
             app:summary="@string/performance_priority_mode_summary"
             app:title="@string/performance_priority_mode" />
-
-        <SwitchPreferenceCompat
-            app:icon="@drawable/baseline_developer_board_24"
-            app:key="acquireWakeLock"
-            app:summary="@string/acquire_wake_lock_summary"
-            app:title="@string/acquire_wake_lock" />
 
         <SwitchPreferenceCompat
             app:key="hideFromRecentApps"

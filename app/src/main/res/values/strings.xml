@@ -1333,4 +1333,7 @@
     <string name="settings_fragment_summary">TLS fragment toggle, length and interval control</string>
     <string name="settings_observatory_summary">Connection test URL, speed test mode and timeouts</string>
     <string name="settings_advanced_summary">Clash API, wake lock, log level, clear cache, reset</string>
+    <string name="cag_advanced_network">Network &amp; Outbound</string>
+    <string name="cag_advanced_security">Security &amp; TLS</string>
+    <string name="cag_advanced_diagnostics">Diagnostics &amp; System</string>
 </resources>

@@ -1,5 +1,12 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.28 预览版
+
+* 根治设置闪退：重构 `AppearanceSettingsFragment` 中 `findPreference` 为标准基类 `TwoStatePreference`，彻底消灭由于 `SwitchPreferenceCompat` 类型强转触发的 `ClassCastException` 崩溃，解决点击“用户界面设置”秒退问题
+* 彻底修复 Telegram 开关形态：在 `SwitchCompat` 中显式禁用轨道穿孔抠图（`splitTrack="false"`），并为圆形滑块加入 0.5dp 微弱环形暗边与标准光学内嵌边距，彻底告别畸变半月牙残损与滑块隐形，呈现饱满圆润的 Telegram / iOS 质感药丸胶囊
+* 优化列表底部安全滑动留白：设置主页及各分级子页面 RecyclerView 底部内边距由 88dp 扩大至 120dp，彻底消除全局红色主 FAB 悬浮按钮对末尾条目的视觉与触控遮挡
+* 精细化进阶设置子页面：消除顶层同名重复标题，将进阶设置提炼为“网络与出站连接”、“安全与 TLS 证书”、“诊断与系统管理”三大优雅卡片群
+
 # OwnBox for Android v26.11.3.27 预览版
 
 * 设置界面全面重构为 Telegram 经典分级导航架构（方案 A），将原有 8 个孤立易散折叠卡片整合为“基础体验”、“核心引擎与网络”、“进阶与诊断”三大组聚合卡片，一屏尽览全局

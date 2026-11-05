@@ -16,6 +16,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
 import androidx.preference.SwitchPreference
 import androidx.preference.SwitchPreferenceCompat
+import androidx.preference.TwoStatePreference
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.AppIconManager
@@ -43,7 +44,7 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
         setDivider(null)
         setDividerHeight(0)
         listView.clipToPadding = false
-        listView.setPadding(0, dp2px(8), 0, dp2px(88))
+        listView.setPadding(0, dp2px(8), 0, dp2px(120))
         TelegramGroupedPreferenceDecoration.applyTo(listView)
     }
 
@@ -103,8 +104,8 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val liveUpdateEnabled = findPreference<SwitchPreference>(Key.LIVE_UPDATE_ENABLED)
-        val liveUpdateShowCapsule = findPreference<SwitchPreference>(Key.LIVE_UPDATE_SHOW_CAPSULE)
+        val liveUpdateEnabled = findPreference<TwoStatePreference>(Key.LIVE_UPDATE_ENABLED)
+        val liveUpdateShowCapsule = findPreference<TwoStatePreference>(Key.LIVE_UPDATE_SHOW_CAPSULE)
         val liveUpdatePreset = findPreference<SimpleMenuPreference>(Key.LIVE_UPDATE_PRESET)
         val liveUpdateCollapsed = findPreference<EditTextPreference>(Key.LIVE_UPDATE_COLLAPSED_FORMAT)
         val liveUpdateTitle = findPreference<EditTextPreference>(Key.LIVE_UPDATE_TITLE_FORMAT)
@@ -236,7 +237,7 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        findPreference<SwitchPreference>("showDirectSpeed")?.setOnPreferenceChangeListener { _, newValue ->
+        findPreference<TwoStatePreference>("showDirectSpeed")?.setOnPreferenceChangeListener { _, newValue ->
             DataStore.showDirectSpeed = newValue as Boolean
             needReload()
             view?.post {
@@ -246,7 +247,7 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        findPreference<SwitchPreference>("showGroupInNotification")?.setOnPreferenceChangeListener { _, newValue ->
+        findPreference<TwoStatePreference>("showGroupInNotification")?.setOnPreferenceChangeListener { _, newValue ->
             DataStore.showGroupInNotification = newValue as Boolean
             view?.post {
                 updateLiveUpdatePreview()

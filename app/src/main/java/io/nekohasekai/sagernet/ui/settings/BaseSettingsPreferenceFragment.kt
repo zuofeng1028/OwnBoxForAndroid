@@ -24,7 +24,7 @@ abstract class BaseSettingsPreferenceFragment : PreferenceFragmentCompat() {
         setDivider(null)
         setDividerHeight(0)
         listView.clipToPadding = false
-        listView.setPadding(0, dp2px(8), 0, dp2px(88))
+        listView.setPadding(0, dp2px(8), 0, dp2px(120))
         TelegramGroupedPreferenceDecoration.applyTo(listView)
     }
 

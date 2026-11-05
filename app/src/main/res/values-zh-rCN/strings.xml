@@ -1251,4 +1251,7 @@
     <string name="settings_fragment_summary">TLS 分片开启、分片长度与发包间隔控制</string>
     <string name="settings_observatory_summary">连通性测试 URL、测速模式与超时配置</string>
     <string name="settings_advanced_summary">Clash API、唤醒锁、后台隐藏、日志级别、清理缓存、恢复默认</string>
+    <string name="cag_advanced_network">网络与出站连接</string>
+    <string name="cag_advanced_security">安全与 TLS 证书</string>
+    <string name="cag_advanced_diagnostics">诊断与系统管理</string>
 </resources>
