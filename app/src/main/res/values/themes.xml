@@ -96,6 +96,12 @@
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
         <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
 
+        <!-- Telegram Switch & Preference Styles -->
+        <item name="switchStyle">@style/Widget.Telegram.Switch</item>
+        <item name="switchPreferenceStyle">@style/Widget.Telegram.Preference.Switch</item>
+        <item name="switchPreferenceCompatStyle">@style/Widget.Telegram.Preference.Switch</item>
+        <item name="preferenceCategoryStyle">@style/Widget.Telegram.PreferenceCategory</item>
+
     </style>
 
     <style name="Theme.SagerNet.Dialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
@@ -176,6 +182,12 @@
         <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.SagerNet.BottomSheetDialog</item>
         <item name="materialButtonStyle">@style/Widget.SagerNet.Button</item>
+
+        <!-- Telegram Switch & Preference Styles -->
+        <item name="switchStyle">@style/Widget.Telegram.Switch</item>
+        <item name="switchPreferenceStyle">@style/Widget.Telegram.Preference.Switch</item>
+        <item name="switchPreferenceCompatStyle">@style/Widget.Telegram.Preference.Switch</item>
+        <item name="preferenceCategoryStyle">@style/Widget.Telegram.PreferenceCategory</item>
 
         <item name="android:dialogCornerRadius">@dimen/dialog_corner_radius</item>
 
@@ -375,6 +387,25 @@
 
     <style name="Widget.SagerNet.CardView.Tinted" parent="Widget.SagerNet.CardView">
         <item name="cardBackgroundColor">?attr/cardElevatedSurfaceColor</item>
+    </style>
+
+    <!-- Telegram UI Components -->
+    <style name="Widget.Telegram.Switch" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="track">@drawable/telegram_switch_track</item>
+        <item name="android:thumb">@drawable/telegram_switch_thumb</item>
+        <item name="thumbTint">@null</item>
+        <item name="trackTint">@null</item>
+        <item name="showText">false</item>
+        <item name="switchMinWidth">44dp</item>
+        <item name="switchPadding">8dp</item>
+    </style>
+
+    <style name="Widget.Telegram.Preference.Switch" parent="@style/Preference.SwitchPreferenceCompat.Material">
+        <item name="widgetLayout">@layout/layout_telegram_preference_switch</item>
+    </style>
+
+    <style name="Widget.Telegram.PreferenceCategory" parent="@style/Preference.Category">
+        <item name="android:layout">@layout/layout_telegram_preference_category</item>
     </style>
 
     <style name="ShapeAppearanceOverlay.SagerNet.Dialog" parent="">

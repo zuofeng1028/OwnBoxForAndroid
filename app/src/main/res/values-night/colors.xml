@@ -51,4 +51,8 @@
     <!-- 纯黑主题在深色模式下的颜色映射 -->
     <color name="color_ng_black_accent">#FFFFFF</color>
     <color name="color_ng_black_primary">#2C2C2E</color>
+
+    <!-- Telegram UI 调色盘 (深色模式) -->
+    <color name="telegram_switch_track_off">#334155</color>
+    <color name="telegram_switch_thumb_off">#CBD5E1</color>
 </resources>

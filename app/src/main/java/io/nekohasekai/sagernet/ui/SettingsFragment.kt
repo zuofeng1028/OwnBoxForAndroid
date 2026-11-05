@@ -63,6 +63,12 @@ class SettingsFragment : ToolbarFragment(R.layout.layout_config_settings),
             putCharSequence(AppearanceSettingsFragment.ARG_TITLE, title)
         }
         childFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.fragment_open_enter,
+                R.anim.fragment_open_exit,
+                R.anim.fragment_close_enter,
+                R.anim.fragment_close_exit
+            )
             .setReorderingAllowed(true)
             .replace(R.id.settings, fragment)
             .addToBackStack(null)

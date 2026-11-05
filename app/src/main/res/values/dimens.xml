@@ -23,6 +23,13 @@
 
     <dimen name="mtrl_snackbar_background_corner_radius">16dp</dimen>
 
+    <!-- Telegram Settings UI Dimensions -->
+    <dimen name="telegram_card_corner_radius">24dp</dimen>
+    <dimen name="telegram_card_margin_horizontal">12dp</dimen>
+    <dimen name="telegram_switch_width">44dp</dimen>
+    <dimen name="telegram_switch_height">24dp</dimen>
+    <dimen name="telegram_switch_thumb_size">20dp</dimen>
+
     <!-- Action Bar & Action Menu Button Compact Overrides -->
     <dimen name="abc_action_button_min_width_material">32dp</dimen>
     <dimen name="abc_action_button_min_width_overflow_material">32dp</dimen>

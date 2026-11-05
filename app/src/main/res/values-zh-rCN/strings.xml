@@ -1238,4 +1238,17 @@
     <string name="compact_profile_rows_sum">每个配置只显示为一行，仅含名称和延迟</string>
     <string name="compact_group_cards">紧凑分组卡片</string>
     <string name="compact_group_cards_sum">以用量进度条和剩余时间代替订阅链接与详细信息</string>
+
+    <!-- Telegram 风格设置分类字符 -->
+    <string name="settings_cat_basic">基础体验</string>
+    <string name="settings_cat_core_network">核心引擎与网络</string>
+    <string name="settings_cat_advanced">进阶与诊断</string>
+    <string name="settings_ui_summary">外观、主题、卡片样式、语言与触觉反馈</string>
+    <string name="settings_vpn_summary">自动连接、分应用代理、绕过 LAN、严格路由、MTU</string>
+    <string name="settings_mode_summary">运行模式、混合入站、代理端口、认证、局域网共享</string>
+    <string name="settings_core_summary">流量探测、IPv6 策略、路由规则提供商与自动更新</string>
+    <string name="settings_dns_summary">远程/直连 DNS、FakeDNS、DNS 策略与 Hosts</string>
+    <string name="settings_fragment_summary">TLS 分片开启、分片长度与发包间隔控制</string>
+    <string name="settings_observatory_summary">连通性测试 URL、测速模式与超时配置</string>
+    <string name="settings_advanced_summary">Clash API、唤醒锁、后台隐藏、日志级别、清理缓存、恢复默认</string>
 </resources>

@@ -8,13 +8,17 @@ import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.EditTextPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceGroup
 import androidx.preference.SwitchPreference
+import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.nekohasekai.sagernet.Action
+import io.nekohasekai.sagernet.AppIconManager
 import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.bg.LiveUpdateFormatter
@@ -27,6 +31,7 @@ import io.nekohasekai.sagernet.utils.Theme
 import io.nekohasekai.sagernet.utils.UiScaleManager
 import moe.matsuri.nb4a.ui.ColorPickerPreference
 import moe.matsuri.nb4a.ui.SimpleMenuPreference
+import moe.matsuri.nb4a.ui.TelegramGroupedPreferenceDecoration
 
 class AppearanceSettingsFragment : PreferenceFragmentCompat() {
 
@@ -39,11 +44,32 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
         setDividerHeight(0)
         listView.clipToPadding = false
         listView.setPadding(0, dp2px(8), 0, dp2px(88))
+        TelegramGroupedPreferenceDecoration.applyTo(listView)
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.preferenceDataStore = DataStore.configurationStore
         setPreferencesFromResource(R.xml.settings_appearance, rootKey)
+        tintPreferenceIcons(preferenceScreen, Theme.getPrimaryColor(requireContext()))
+
+        findPreference<SimpleMenuPreference>(Key.APP_ICON_MODE)?.setOnPreferenceChangeListener { _, newMode ->
+            val mode = (newMode as String).toInt()
+            DataStore.appIconMode = mode
+            AppIconManager.applyIconMode(requireContext(), mode = mode, force = true)
+            true
+        }
+
+        val profileTrafficStatistics =
+            findPreference<SwitchPreferenceCompat>(Key.PROFILE_TRAFFIC_STATISTICS)
+        val speedInterval = findPreference<SimpleMenuPreference>(Key.SPEED_INTERVAL)
+        if (profileTrafficStatistics != null && speedInterval != null) {
+            profileTrafficStatistics.isEnabled = speedInterval.value.toString() != "0"
+            speedInterval.setOnPreferenceChangeListener { _, newValue ->
+                profileTrafficStatistics.isEnabled = newValue.toString() != "0"
+                needReload()
+                true
+            }
+        }
 
         findPreference<Preference>("uiScaleSettings")?.apply {
             summary = UiScaleManager.formatSummary()
@@ -283,6 +309,21 @@ class AppearanceSettingsFragment : PreferenceFragmentCompat() {
                 startActivity(candidate)
                 return
             } catch (_: Exception) {}
+        }
+    }
+
+    private fun tintPreferenceIcons(group: PreferenceGroup, color: Int) {
+        for (i in 0 until group.preferenceCount) {
+            val pref = group.getPreference(i)
+            if (pref is PreferenceGroup) {
+                tintPreferenceIcons(pref, color)
+            } else {
+                pref.icon?.let { icon ->
+                    val tinted = icon.mutate()
+                    DrawableCompat.setTint(tinted, color)
+                    pref.icon = tinted
+                }
+            }
         }
     }
 
