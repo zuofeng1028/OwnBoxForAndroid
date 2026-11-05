@@ -1004,7 +1004,7 @@ class MainActivity : ThemedActivity(),
     }
 
     fun hideMenuScrim(token: Any? = null) {
-        if (token != null && activeMenuToken != null && token !== activeMenuToken) {
+        if (token != null && activeMenuToken != null && token != activeMenuToken) {
             return
         }
         activeMenuToken = null
