@@ -1,5 +1,10 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.24 预览版
+
+* 优化顶部双胶囊分组切换器：外层大胶囊左右外边距与下方节点卡片严丝合缝垂直对齐 (8dp)
+* 修复首末分组胶囊与大胶囊边缘包裹间隙 (4dp)，构建完美 Telegram 同心圆环带几何留白
+
 # OwnBox for Android v26.11.3.23 预览版
 
 * 分组切换栏升级为 Telegram 同款外层总大胶囊底槽与内层弹性滑块双层架构，全量统一中粗字重与双层多主题配色

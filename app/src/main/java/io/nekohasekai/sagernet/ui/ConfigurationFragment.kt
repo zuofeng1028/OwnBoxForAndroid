@@ -786,14 +786,21 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun applyTabMargins() {
         if (!::tabLayout.isInitialized) return
         val slidingTabIndicator = tabLayout.getChildAt(0) as? ViewGroup ?: return
-        val marginH = dp2px(2)
-        for (i in 0 until slidingTabIndicator.childCount) {
+        val count = slidingTabIndicator.childCount
+        if (count == 0) return
+        val innerMargin = dp2px(2)
+        val edgeMargin = dp2px(4)
+        for (i in 0 until count) {
             val tabView = slidingTabIndicator.getChildAt(i)
             val lp = tabView.layoutParams as? ViewGroup.MarginLayoutParams
-            if (lp != null && (lp.leftMargin != marginH || lp.rightMargin != marginH)) {
-                lp.leftMargin = marginH
-                lp.rightMargin = marginH
-                tabView.requestLayout()
+            if (lp != null) {
+                val left = if (i == 0) edgeMargin else innerMargin
+                val right = if (i == count - 1) edgeMargin else innerMargin
+                if (lp.leftMargin != left || lp.rightMargin != right) {
+                    lp.leftMargin = left
+                    lp.rightMargin = right
+                    tabView.requestLayout()
+                }
             }
             if (tabView is ViewGroup) {
                 for (j in 0 until tabView.childCount) {
