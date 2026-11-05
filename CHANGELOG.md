@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.23 预览版
+
+* 分组切换栏升级为 Telegram 同款外层总大胶囊底槽与内层弹性滑块双层架构，全量统一中粗字重与双层多主题配色
+
 # OwnBox for Android v26.11.3.22 预览版
 
 * 顶部横向分组切换栏重构为 Telegram 风格圆角胶囊切换器，全量动态适配主题颜色与暗黑模式

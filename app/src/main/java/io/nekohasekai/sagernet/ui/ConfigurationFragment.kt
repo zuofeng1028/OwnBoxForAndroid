@@ -193,6 +193,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     lateinit var adapter: GroupPagerAdapter
+    var groupTabContainer: View? = null
     lateinit var tabLayout: TabLayout
     lateinit var groupPager: ViewPager2
 
@@ -785,7 +786,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     private fun applyTabMargins() {
         if (!::tabLayout.isInitialized) return
         val slidingTabIndicator = tabLayout.getChildAt(0) as? ViewGroup ?: return
-        val marginH = dp2px(3)
+        val marginH = dp2px(2)
         for (i in 0 until slidingTabIndicator.childCount) {
             val tabView = slidingTabIndicator.getChildAt(i)
             val lp = tabView.layoutParams as? ViewGroup.MarginLayoutParams
@@ -793,6 +794,14 @@ class ConfigurationFragment @JvmOverloads constructor(
                 lp.leftMargin = marginH
                 lp.rightMargin = marginH
                 tabView.requestLayout()
+            }
+            if (tabView is ViewGroup) {
+                for (j in 0 until tabView.childCount) {
+                    val child = tabView.getChildAt(j)
+                    if (child is TextView) {
+                        child.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                    }
+                }
             }
         }
     }
@@ -806,6 +815,42 @@ class ConfigurationFragment @JvmOverloads constructor(
         val isLightGray = Theme.isLightGrayTheme(ctx)
         val themeColor = Theme.getPrimaryColor(ctx)
 
+        // 1. Style Outer Big Capsule Track (groupTabContainer)
+        val containerRadius = dp2px(19).toFloat()
+        val containerBgColor: Int
+        val containerStrokeColor: Int
+        when {
+            isBlack -> {
+                containerBgColor = Color.parseColor("#121214")
+                containerStrokeColor = Color.parseColor("#27272A")
+            }
+            isWhite -> {
+                containerBgColor = Color.WHITE
+                containerStrokeColor = Color.parseColor("#E2E8F0")
+            }
+            isLightGray -> {
+                containerBgColor = Color.parseColor("#F5F5F7")
+                containerStrokeColor = Color.parseColor("#E2E8F0")
+            }
+            isNight -> {
+                containerBgColor = Color.parseColor("#1E293B")
+                containerStrokeColor = Color.parseColor("#334155")
+            }
+            else -> {
+                containerBgColor = Color.WHITE
+                containerStrokeColor = Color.parseColor("#E2E8F0")
+            }
+        }
+        val outerDrawable = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            cornerRadius = containerRadius
+            setColor(containerBgColor)
+            setStroke(dp2px(1), containerStrokeColor)
+        }
+        groupTabContainer?.background = outerDrawable
+        groupTabContainer?.clipToOutline = true
+
+        // 2. Style Inner Active Sliding Pill & Text colors
         val capsuleBg: Int
         val selectedText: Int
         val unselectedText: Int
@@ -814,28 +859,25 @@ class ConfigurationFragment @JvmOverloads constructor(
             isBlack -> {
                 capsuleBg = Color.parseColor("#2E2E35")
                 selectedText = Color.WHITE
-                unselectedText = Color.parseColor("#71717A")
-                tabLayout.setBackgroundColor(Color.BLACK)
+                unselectedText = Color.parseColor("#A1A1AA")
             }
             isWhite -> {
                 capsuleBg = Color.parseColor("#E5E7EB")
-                selectedText = Color.parseColor("#111827")
-                unselectedText = Color.parseColor("#6B7280")
-                tabLayout.setBackgroundColor(Color.WHITE)
+                selectedText = Color.parseColor("#0F172A")
+                unselectedText = Color.parseColor("#707579")
             }
             isLightGray -> {
                 capsuleBg = Color.parseColor("#E2E8F0")
                 selectedText = Color.parseColor("#0F172A")
-                unselectedText = Color.parseColor("#64748B")
-                tabLayout.setBackgroundColor(Color.parseColor("#F5F5F7"))
+                unselectedText = Color.parseColor("#707579")
             }
             isNight -> {
-                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 65)
+                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 60)
                 selectedText = ColorUtils.blendARGB(themeColor, Color.WHITE, 0.40f)
                 unselectedText = Color.parseColor("#7F95A8")
             }
             else -> {
-                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 45)
+                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 36)
                 val lum = ColorUtils.calculateLuminance(themeColor)
                 selectedText = if (lum > 0.45) {
                     ColorUtils.blendARGB(themeColor, Color.BLACK, 0.45f)
@@ -846,6 +888,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
         }
 
+        tabLayout.setBackgroundColor(Color.TRANSPARENT)
         tabLayout.setSelectedTabIndicatorColor(capsuleBg)
         tabLayout.setTabTextColors(unselectedText, selectedText)
         tabLayout.tabRippleColor = android.content.res.ColorStateList.valueOf(Color.TRANSPARENT)
@@ -970,6 +1013,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onViewCreated(view, savedInstanceState)
 
         groupPager = view.findViewById(R.id.group_pager)
+        groupTabContainer = view.findViewById(R.id.group_tab_container)
         tabLayout = view.findViewById(R.id.group_tab)
         adapter = GroupPagerAdapter()
         ProfileManager.addListener(adapter)
@@ -1153,8 +1197,7 @@ class ConfigurationFragment @JvmOverloads constructor(
         val tabFactor = UiScaleManager.tabBarFactor()
         if (tabFactor != 1.0f) {
             val scaledTabHeight = (dp2px(38) * tabFactor).toInt().coerceIn(dp2px(26), dp2px(54))
-            tabLayout.minimumHeight = scaledTabHeight
-            tabLayout.layoutParams = tabLayout.layoutParams?.apply {
+            groupTabContainer?.layoutParams = groupTabContainer?.layoutParams?.apply {
                 height = scaledTabHeight
             }
         }
@@ -2786,6 +2829,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 // Show tab if there are ≥2 real groups (or ≥3 items including sentinel)
                                 val realGroupCount = groupList.count { it.id != ALL_GROUPS_SENTINEL_ID }
                                 val hideTab = realGroupCount < 2
+                                groupTabContainer?.isGone = hideTab
                                 tabLayout.isGone = hideTab
                                 toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
                                 if (!hideTab) {
@@ -2836,6 +2880,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 groupList.add(group)
 
                 if (groupList.any { !it.ungrouped }) tabLayout.post {
+                    groupTabContainer?.visibility = View.VISIBLE
                     tabLayout.visibility = View.VISIBLE
                     applyTabMargins()
                     styleCapsuleTabLayout()

@@ -57,27 +57,39 @@
         </FrameLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/group_tab"
+    <FrameLayout
+        android:id="@+id/group_tab_container"
         android:layout_width="match_parent"
         android:layout_height="38dp"
-        android:minHeight="38dp"
-        android:background="?android:attr/colorBackground"
-        android:elevation="0dp"
-        android:visibility="gone"
-        app:tabIndicator="@drawable/bg_tab_capsule"
-        app:tabIndicatorGravity="center"
-        app:tabIndicatorHeight="32dp"
-        app:tabIndicatorFullWidth="true"
-        app:tabIndicatorAnimationMode="elastic"
-        app:tabMode="scrollable"
-        app:tabPaddingStart="13dp"
-        app:tabPaddingEnd="13dp"
-        app:tabPaddingTop="0dp"
-        app:tabPaddingBottom="0dp"
-        app:tabRippleColor="@android:color/transparent"
-        app:tabTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule"
-        app:tabUnboundedRipple="false" />
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/bg_tab_outer_capsule"
+        android:visibility="gone">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/group_tab"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:elevation="0dp"
+            app:tabIndicator="@drawable/bg_tab_capsule"
+            app:tabIndicatorGravity="center"
+            app:tabIndicatorHeight="30dp"
+            app:tabIndicatorFullWidth="true"
+            app:tabIndicatorAnimationMode="elastic"
+            app:tabMode="scrollable"
+            app:tabPaddingStart="14dp"
+            app:tabPaddingEnd="14dp"
+            app:tabPaddingTop="0dp"
+            app:tabPaddingBottom="0dp"
+            app:tabRippleColor="@android:color/transparent"
+            app:tabTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule"
+            app:tabSelectedTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule"
+            app:tabUnboundedRipple="false" />
+
+    </FrameLayout>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/group_pager"

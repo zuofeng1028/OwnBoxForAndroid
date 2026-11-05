@@ -356,11 +356,13 @@
         <item name="android:includeFontPadding">false</item>
     </style>
 
-    <style name="Widget.SagerNet.TabLayout.TextAppearance.Capsule" parent="TextAppearance.MaterialComponents.Button">
+    <style name="Widget.SagerNet.TabLayout.TextAppearance.Capsule" parent="TextAppearance.MaterialComponents.Body2">
         <item name="android:textAllCaps">false</item>
         <item name="textAllCaps">false</item>
-        <item name="android:textSize">13.5sp</item>
+        <item name="android:textSize">13sp</item>
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:letterSpacing">0</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
