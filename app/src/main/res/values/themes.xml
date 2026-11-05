@@ -98,7 +98,6 @@
 
         <!-- Telegram Switch & Preference Styles -->
         <item name="switchStyle">@style/Widget.Telegram.Switch</item>
-        <item name="switchPreferenceStyle">@style/Widget.Telegram.Preference.Switch</item>
         <item name="switchPreferenceCompatStyle">@style/Widget.Telegram.Preference.Switch</item>
         <item name="preferenceCategoryStyle">@style/Widget.Telegram.PreferenceCategory</item>
 
@@ -185,7 +184,6 @@
 
         <!-- Telegram Switch & Preference Styles -->
         <item name="switchStyle">@style/Widget.Telegram.Switch</item>
-        <item name="switchPreferenceStyle">@style/Widget.Telegram.Preference.Switch</item>
         <item name="switchPreferenceCompatStyle">@style/Widget.Telegram.Preference.Switch</item>
         <item name="preferenceCategoryStyle">@style/Widget.Telegram.PreferenceCategory</item>
 
