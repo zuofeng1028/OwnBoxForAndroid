@@ -93,9 +93,9 @@ open class SimpleMenuPreference
             if (isDark) (255 * 0.50).toInt() else (255 * 0.38).toInt()
         )
 
-        private val pillRadius = 8f * density
+        private val pillRadius = 16f * density
         private val pillStrokeWidth = (1.5f * density).toInt()
-        private val insetH = (6f * density).toInt()
+        private val insetH = (8f * density).toInt()
         private val insetV = (2f * density).toInt()
 
         private val selectedItemDrawable = InsetDrawable(
