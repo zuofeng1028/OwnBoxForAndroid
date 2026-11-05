@@ -4,10 +4,22 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
-  <path
-      android:fillColor="@android:color/white"
-      android:pathData="M13.7827,15.1719l2.1213,-2.1213l5.9962,5.9962l-2.1213,2.1213z"/>
-  <path
-      android:fillColor="@android:color/white"
-      android:pathData="M17.5,10c1.93,0 3.5,-1.57 3.5,-3.5c0,-0.58 -0.16,-1.12 -0.41,-1.6l-2.7,2.7L16.4,6.11l2.7,-2.7C18.62,3.16 18.08,3 17.5,3C15.57,3 14,4.57 14,6.5c0,0.41 0.08,0.8 0.21,1.16l-1.85,1.85l-1.78,-1.78l0.71,-0.71L9.88,5.61L12,3.49c-1.17,-1.17 -3.07,-1.17 -4.24,0L4.22,7.03l1.41,1.41H2.81L2.1,9.15l3.54,3.54l0.71,-0.71V9.15l1.41,1.41l0.71,-0.71l1.78,1.78l-7.41,7.41l2.12,2.12L16.34,9.79C16.7,9.92 17.09,10 17.5,10z"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M2,9C2,7.3431 3.3431,6 5,6H19C20.6569,6 22,7.3431 22,9V17C22,18.6569 20.6569,20 19,20H5C3.3431,20 2,18.6569 2,17V9Z"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M16.52,6C16.52,4.1144 16.52,3.1716 15.9342,2.5858C15.3484,2 14.4056,2 12.52,2H11.4795C9.5939,2 8.6511,2 8.0653,2.5858C7.4795,3.1716 7.4795,4.1144 7.4795,6M2,12H5M18.7839,12H22M8.7839,12H15"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8.4055,11H5.3784C5.1694,11 5,11.1694 5,11.3784V13.0141C5,13.1689 5.0942,13.308 5.2379,13.3655L5.7677,13.5774C6.4894,13.8661 7.2945,13.8661 8.0162,13.5774L8.546,13.3655C8.6897,13.308 8.7839,13.1689 8.7839,13.0141V11.3784C8.7839,11.1694 8.6145,11 8.4055,11ZM18.4055,11H15.3784C15.1694,11 15,11.1694 15,11.3784V13.0141C15,13.1689 15.0942,13.308 15.2379,13.3655L15.7677,13.5774C16.4894,13.8661 17.2945,13.8661 18.0162,13.5774L18.546,13.3655C18.6897,13.308 18.7839,13.1689 18.7839,13.0141V11.3784C18.7839,11.1694 18.6145,11 18.4055,11Z"/>
 </vector>

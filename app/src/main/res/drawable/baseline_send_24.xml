@@ -3,9 +3,29 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="?attr/colorControlNormal"
-    android:autoMirrored="true">
-  <path
-      android:fillColor="@android:color/white"
-      android:pathData="M2.01,21L23,12 2.01,3 2,10l15,2 -15,2z"/>
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M8,6a4,4 0,1 0,8 0a4,4 0,1 0,-8 0"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M18,9C19.6569,9 21,7.8807 21,6.5C21,5.1193 19.6569,4 18,4M6,9C4.3431,9 3,7.8807 3,6.5C3,5.1193 4.3431,4 6,4"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M6,17a6,4 0,1 0,12 0a6,4 0,1 0,-12 0"/>
+    <path
+        android:strokeWidth="1.5"
+        android:strokeColor="@android:color/white"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M20,19C21.7542,18.6153 23,17.6411 23,16.5C23,15.3589 21.7542,14.3847 20,14M4,19C2.2458,18.6153 1,17.6411 1,16.5C1,15.3589 2.2458,14.3847 4,14"/>
 </vector>
