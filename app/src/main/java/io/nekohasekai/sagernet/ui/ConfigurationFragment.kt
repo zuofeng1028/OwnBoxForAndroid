@@ -782,6 +782,75 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
     }
 
+    private fun applyTabMargins() {
+        if (!::tabLayout.isInitialized) return
+        val slidingTabIndicator = tabLayout.getChildAt(0) as? ViewGroup ?: return
+        val marginH = dp2px(3)
+        for (i in 0 until slidingTabIndicator.childCount) {
+            val tabView = slidingTabIndicator.getChildAt(i)
+            val lp = tabView.layoutParams as? ViewGroup.MarginLayoutParams
+            if (lp != null && (lp.leftMargin != marginH || lp.rightMargin != marginH)) {
+                lp.leftMargin = marginH
+                lp.rightMargin = marginH
+                tabView.requestLayout()
+            }
+        }
+    }
+
+    private fun styleCapsuleTabLayout() {
+        if (!::tabLayout.isInitialized) return
+        val ctx = context ?: return
+        val isBlack = Theme.isBlackTheme(ctx)
+        val isNight = Theme.usingNightMode(ctx)
+        val isWhite = Theme.isWhiteTheme(ctx)
+        val isLightGray = Theme.isLightGrayTheme(ctx)
+        val themeColor = Theme.getPrimaryColor(ctx)
+
+        val capsuleBg: Int
+        val selectedText: Int
+        val unselectedText: Int
+
+        when {
+            isBlack -> {
+                capsuleBg = Color.parseColor("#2E2E35")
+                selectedText = Color.WHITE
+                unselectedText = Color.parseColor("#71717A")
+                tabLayout.setBackgroundColor(Color.BLACK)
+            }
+            isWhite -> {
+                capsuleBg = Color.parseColor("#E5E7EB")
+                selectedText = Color.parseColor("#111827")
+                unselectedText = Color.parseColor("#6B7280")
+                tabLayout.setBackgroundColor(Color.WHITE)
+            }
+            isLightGray -> {
+                capsuleBg = Color.parseColor("#E2E8F0")
+                selectedText = Color.parseColor("#0F172A")
+                unselectedText = Color.parseColor("#64748B")
+                tabLayout.setBackgroundColor(Color.parseColor("#F5F5F7"))
+            }
+            isNight -> {
+                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 65)
+                selectedText = ColorUtils.blendARGB(themeColor, Color.WHITE, 0.40f)
+                unselectedText = Color.parseColor("#7F95A8")
+            }
+            else -> {
+                capsuleBg = ColorUtils.setAlphaComponent(themeColor, 45)
+                val lum = ColorUtils.calculateLuminance(themeColor)
+                selectedText = if (lum > 0.45) {
+                    ColorUtils.blendARGB(themeColor, Color.BLACK, 0.45f)
+                } else {
+                    themeColor
+                }
+                unselectedText = Color.parseColor("#707579")
+            }
+        }
+
+        tabLayout.setSelectedTabIndicatorColor(capsuleBg)
+        tabLayout.setTabTextColors(unselectedText, selectedText)
+        tabLayout.tabRippleColor = android.content.res.ColorStateList.valueOf(Color.TRANSPARENT)
+    }
+
     private fun styleSearchView(searchView: SearchView) {
         val ctx = context ?: return
         val textColor: Int
@@ -944,9 +1013,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 tv?.text = resolvedTitle
                 tv?.visibility = View.VISIBLE
                 tv?.setTextColor(Color.WHITE)
-                tabLayout.setBackgroundColor(bg)
-                tabLayout.setSelectedTabIndicatorColor(Color.WHITE)
-                tabLayout.setTabTextColors(Color.parseColor("#CAC4D0"), Color.WHITE)
                 toolbar.navigationIcon?.let {
                     val tinted = it.mutate()
                     DrawableCompat.setTint(tinted, Color.WHITE)
@@ -968,9 +1034,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 tv?.text = resolvedTitle
                 tv?.visibility = View.VISIBLE
                 tv?.setTextColor(Color.parseColor("#212121"))
-                tabLayout.setBackgroundColor(Color.WHITE)
-                tabLayout.setSelectedTabIndicatorColor(Color.parseColor("#212121"))
-                tabLayout.setTabTextColors(Color.parseColor("#8A000000"), Color.parseColor("#212121"))
                 toolbar.navigationIcon?.let {
                     val tinted = it.mutate()
                     DrawableCompat.setTint(tinted, Color.parseColor("#212121"))
@@ -995,9 +1058,6 @@ class ConfigurationFragment @JvmOverloads constructor(
                 tv?.text = resolvedTitle
                 tv?.visibility = View.VISIBLE
                 tv?.setTextColor(textPrimary)
-                tabLayout.setBackgroundColor(bg)
-                tabLayout.setSelectedTabIndicatorColor(textPrimary)
-                tabLayout.setTabTextColors(textSecondary, textPrimary)
                 toolbar.navigationIcon?.let {
                     val tinted = it.mutate()
                     DrawableCompat.setTint(tinted, textPrimary)
@@ -1011,19 +1071,15 @@ class ConfigurationFragment @JvmOverloads constructor(
                 tintMenuIcons(toolbar.menu, textPrimary)
             }
             else -> {
-                val tabIndicatorColor = requireContext().getColorAttr(R.attr.tabIndicatorColor)
-                val tabSelectedTextColor = requireContext().getColorAttr(R.attr.tabSelectedTextColor)
-                val tabUnselectedTextColor = requireContext().getColorAttr(R.attr.tabTextColor)
                 val textColorPrimary = requireContext().getColorAttr(android.R.attr.textColorPrimary)
                 toolbar.setBackgroundColor(Color.TRANSPARENT)
                 val tv = view.findViewById<TextView>(R.id.toolbar_title_view)
                 tv?.text = resolvedTitle
                 tv?.visibility = View.VISIBLE
                 tv?.setTextColor(textColorPrimary)
-                tabLayout.setSelectedTabIndicatorColor(tabIndicatorColor)
-                tabLayout.setTabTextColors(tabUnselectedTextColor, tabSelectedTextColor)
             }
         }
+        styleCapsuleTabLayout()
 
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val searchView = (searchItem?.actionView as? SearchView) ?: toolbar.findViewById<SearchView>(R.id.action_search)
@@ -1096,7 +1152,7 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         val tabFactor = UiScaleManager.tabBarFactor()
         if (tabFactor != 1.0f) {
-            val scaledTabHeight = (dp2px(32) * tabFactor).toInt().coerceIn(dp2px(22), dp2px(48))
+            val scaledTabHeight = (dp2px(38) * tabFactor).toInt().coerceIn(dp2px(26), dp2px(54))
             tabLayout.minimumHeight = scaledTabHeight
             tabLayout.layoutParams = tabLayout.layoutParams?.apply {
                 height = scaledTabHeight
@@ -1107,6 +1163,9 @@ class ConfigurationFragment @JvmOverloads constructor(
         TabLayoutMediator(tabLayout, groupPager) { tab, position ->
             if (adapter.groupList.size > position) {
                 tab.text = adapter.groupList[position].displayName()
+            }
+            tab.view.post {
+                applyTabMargins()
             }
             if (tabFactor != 1.0f) {
                 tab.view.post {
@@ -1168,6 +1227,10 @@ class ConfigurationFragment @JvmOverloads constructor(
                 false
             }
         }.attach()
+        tabLayout.post {
+            applyTabMargins()
+            styleCapsuleTabLayout()
+        }
 
         toolbar.setOnClickListener {
             locateActiveProfile()
@@ -2725,6 +2788,12 @@ class ConfigurationFragment @JvmOverloads constructor(
                                 val hideTab = realGroupCount < 2
                                 tabLayout.isGone = hideTab
                                 toolbar.elevation = if (hideTab) 0F else dp2px(4).toFloat()
+                                if (!hideTab) {
+                                    tabLayout.post {
+                                        applyTabMargins()
+                                        styleCapsuleTabLayout()
+                                    }
+                                }
                                 if (!select) {
                                     groupPager.registerOnPageChangeCallback(updateSelectedCallback)
                                 }
@@ -2768,6 +2837,8 @@ class ConfigurationFragment @JvmOverloads constructor(
 
                 if (groupList.any { !it.ungrouped }) tabLayout.post {
                     tabLayout.visibility = View.VISIBLE
+                    applyTabMargins()
+                    styleCapsuleTabLayout()
                 }
 
                 notifyItemInserted(groupList.size - 1)
