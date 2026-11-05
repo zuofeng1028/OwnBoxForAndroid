@@ -1003,6 +1003,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             searchBar.layoutParams = lp
         }
         val searchBtn = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_button)
+        searchBtn?.setImageResource(R.drawable.ic_baseline_search_24)
         searchBtn?.setColorFilter(textColor)
         searchBtn?.minimumWidth = btnW
         searchBtn?.maxWidth = btnW
@@ -1017,6 +1018,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             searchBtn.layoutParams = lp
         }
         val magBtn = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        magBtn?.setImageResource(R.drawable.ic_baseline_search_24)
         magBtn?.setColorFilter(textColor)
     }
 
