@@ -190,7 +190,7 @@
             app:title="@string/notification_permission" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/route_settings">
+    <PreferenceCategory app:title="@string/cag_misc">
         <SwitchPreferenceCompat
             app:key="showBottomBar"
             app:title="@string/show_bottom_bar" />
