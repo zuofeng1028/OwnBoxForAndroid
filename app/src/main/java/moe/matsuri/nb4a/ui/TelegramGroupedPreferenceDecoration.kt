@@ -59,8 +59,8 @@ class TelegramGroupedPreferenceDecoration(private val context: Context) : Recycl
         if (pref is PreferenceCategory) {
             outRect.left = dp2px(16)
             outRect.right = dp2px(16)
-            outRect.top = if (pos == 0) dp2px(12) else dp2px(18)
-            outRect.bottom = dp2px(4)
+            outRect.top = if (pos == 0) dp2px(8) else dp2px(10)
+            outRect.bottom = dp2px(2)
             view.background = null
 
             // 动态染色分类小标题
@@ -73,10 +73,15 @@ class TelegramGroupedPreferenceDecoration(private val context: Context) : Recycl
             val isFirst = pos == 0 || adapter.getItem(pos - 1) is PreferenceCategory
             val isLast = pos == adapter.itemCount - 1 || adapter.getItem(pos + 1) is PreferenceCategory
 
-            outRect.top = if (isFirst) dp2px(4) else 0
-            outRect.bottom = if (isLast) dp2px(14) else 0
+            outRect.top = if (isFirst) dp2px(2) else 0
+            outRect.bottom = if (isLast) dp2px(8) else 0
 
             applyGroupRipple(view, isFirst, isLast)
+
+            val targetPadV = dp2px(10)
+            if (view.paddingTop != targetPadV || view.paddingBottom != targetPadV) {
+                view.setPaddingRelative(view.paddingStart, targetPadV, view.paddingEnd, targetPadV)
+            }
         }
     }
 
