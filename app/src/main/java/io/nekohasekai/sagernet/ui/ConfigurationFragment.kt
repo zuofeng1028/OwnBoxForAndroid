@@ -3110,6 +3110,8 @@ class ConfigurationFragment @JvmOverloads constructor(
                     return makeMovementFlags(dragFlags, 0) // No swipe flags
                 }
 
+                override fun isLongPressDragEnabled(): Boolean = false
+
                 override fun getSwipeDirs(
                     recyclerView: RecyclerView,
                     viewHolder: RecyclerView.ViewHolder,
@@ -4245,7 +4247,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             private fun showNodeCascadingMenu(anchor: View, proxyEntity: ProxyEntity) {
                 if (select) return
                 activeNodePopupMenu?.dismiss()
-                val popup = PopupMenu(requireContext(), anchor)
+                val popup = PopupMenu(requireContext(), anchor, Gravity.END)
                 activeNodePopupMenu = popup
                 popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
 
@@ -4359,8 +4361,17 @@ class ConfigurationFragment @JvmOverloads constructor(
                         showNodeCascadingMenu(it, proxyEntity)
                     }
                 }
-                view.isLongClickable = false
-                view.setOnLongClickListener(null)
+                view.isLongClickable = true
+                view.setOnLongClickListener {
+                    if (DataStore.hapticFeedback) it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    val proxyEntity = entity
+                    if (!select) {
+                        showNodeCascadingMenu(it, proxyEntity)
+                        true
+                    } else {
+                        false
+                    }
+                }
             }
 
 
@@ -4594,7 +4605,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     editButton.isGone = true
                     shareLayout.isGone = true
                     removeButton.isGone = true
-                    doubleColumnMenuButton.isVisible = !select
+                    doubleColumnMenuButton.isGone = true
 
                     val live = adapter?.liveSpeedTests?.get(proxyEntity.id)
                     val liveText = if (live != null && !live.done) {
@@ -4724,7 +4735,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 editButton.isGone = true
                 shareLayout.isGone = true
                 removeButton.isGone = true
-                doubleColumnMenuButton.isVisible = !select
+                doubleColumnMenuButton.isGone = true
 
                 val selected = pf.isSelectedProfile(proxyEntity.id)
                 val started =

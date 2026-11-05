@@ -47,7 +47,7 @@
                 android:ellipsize="end"
                 android:maxWidth="160dp"
                 android:paddingStart="4dp"
-                android:paddingEnd="2dp"
+                android:paddingEnd="12dp"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="?android:attr/textColorSecondary"
@@ -58,11 +58,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_marginEnd="4dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/more"
-                android:focusable="true"
-                android:padding="6dp"
+                android:focusable="false"
+                android:visibility="gone"
                 app:srcCompat="@drawable/ic_baseline_more_vert_24" />
 
             <!-- Hidden dummy views for compatibility with ConfigurationHolder -->
