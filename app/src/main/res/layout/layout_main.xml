@@ -313,11 +313,11 @@
                 android:layout_height="48dp"
                 android:background="@drawable/bg_drawer_about_button"
                 android:contentDescription="@string/menu_about"
-                android:padding="0dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_launcher_foreground"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_baseline_info_24"
                 android:tooltipText="@string/menu_about"
-                app:tint="@null" />
+                app:tint="?android:attr/textColorPrimary" />
         </LinearLayout>
     </LinearLayout>
 
@@ -423,11 +423,11 @@
                 android:layout_height="48dp"
                 android:background="@drawable/bg_drawer_about_button"
                 android:contentDescription="@string/menu_about"
-                android:padding="0dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_launcher_foreground"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_baseline_info_24"
                 android:tooltipText="@string/menu_about"
-                app:tint="@null" />
+                app:tint="?android:attr/textColorPrimary" />
         </LinearLayout>
     </LinearLayout>
 
