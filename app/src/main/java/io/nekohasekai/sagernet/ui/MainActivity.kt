@@ -653,7 +653,7 @@ class MainActivity : ThemedActivity(),
     private fun rebuildDrawerItems() {
         drawerMenuItems.removeAllViews()
         val drawerFactor = UiScaleManager.drawerFactor()
-        val rowHeight = (dp(50) * drawerFactor).toInt().coerceIn(dp(34), dp(68))
+        val rowHeight = (dp(52) * drawerFactor).toInt().coerceIn(dp(36), dp(72))
         val iconSize = (dp(24) * drawerFactor).toInt().coerceIn(dp(16), dp(34))
         val groupGap = (dp(14) * drawerFactor).toInt().coerceAtLeast(dp(6))
         val titleGap = (dp(16) * drawerFactor).toInt().coerceAtLeast(dp(10))
@@ -671,7 +671,7 @@ class MainActivity : ThemedActivity(),
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(dp(13), 0, dp(12), 0)
+                setPadding(dp(14), 0, dp(14), 0)
                 isClickable = true
                 isFocusable = true
                 tag = item.itemId
@@ -682,9 +682,9 @@ class MainActivity : ThemedActivity(),
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 rowHeight,
             ).apply {
-                marginStart = dp(13)
-                marginEnd = dp(13)
-                bottomMargin = dp(2)
+                marginStart = dp(12)
+                marginEnd = dp(12)
+                bottomMargin = dp(3)
             }
             row.background = drawerRowBackground(selected = item.isChecked)
 
@@ -692,7 +692,7 @@ class MainActivity : ThemedActivity(),
                 scaleType = ImageView.ScaleType.CENTER_INSIDE
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 val iconDrawable = item.icon?.mutate()
-                iconDrawable?.setTint(getColorAttr(R.attr.colorOnSurfaceVariant))
+                iconDrawable?.setTint(getColorAttr(if (item.isChecked) R.attr.colorOnSurface else R.attr.colorOnSurfaceVariant))
                 setImageDrawable(iconDrawable)
             }
             row.addView(icon, LinearLayout.LayoutParams(iconSize, iconSize))
@@ -700,8 +700,8 @@ class MainActivity : ThemedActivity(),
             val title = TextView(this).apply {
                 text = item.title
                 textSize = 16f * drawerFactor
-                setTextColor(getColorAttr(R.attr.colorOnSurface))
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                setTextColor(getColorAttr(if (item.isChecked) R.attr.colorOnSurface else R.attr.colorOnSurfaceVariant))
+                typeface = Typeface.create("sans-serif-medium", if (item.isChecked) Typeface.BOLD else Typeface.NORMAL)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
@@ -725,12 +725,17 @@ class MainActivity : ThemedActivity(),
             (row.getChildAt(0) as? ImageView)?.drawable?.setTint(
                 getColorAttr(if (selected) R.attr.colorOnSurface else R.attr.colorOnSurfaceVariant)
             )
+            val titleView = row.getChildAt(1) as? TextView
+            titleView?.setTextColor(
+                getColorAttr(if (selected) R.attr.colorOnSurface else R.attr.colorOnSurfaceVariant)
+            )
+            titleView?.typeface = Typeface.create("sans-serif-medium", if (selected) Typeface.BOLD else Typeface.NORMAL)
         }
     }
 
     private fun drawerRowBackground(selected: Boolean): RippleDrawable {
         val fill = GradientDrawable().apply {
-            cornerRadius = dp(16).toFloat()
+            cornerRadius = dp(24).toFloat()
             setColor(if (selected) getColorAttr(R.attr.colorSurfaceVariant) else Color.TRANSPARENT)
         }
         val ripple = ColorUtils.setAlphaComponent(getColorAttr(R.attr.colorOnSurface), 20)

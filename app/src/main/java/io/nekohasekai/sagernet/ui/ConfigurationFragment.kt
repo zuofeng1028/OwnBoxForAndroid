@@ -812,12 +812,23 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
             if (tabView is ViewGroup) {
+                val isSelected = tabLayout.selectedTabPosition == i
                 for (j in 0 until tabView.childCount) {
                     val child = tabView.getChildAt(j)
                     if (child is TextView) {
-                        child.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                        child.typeface = Typeface.create("sans-serif-medium", if (isSelected) Typeface.BOLD else Typeface.NORMAL)
                     }
                 }
+            }
+        }
+    }
+
+    private fun updateTabTypeface(tab: TabLayout.Tab?, isSelected: Boolean) {
+        val tabView = tab?.view ?: return
+        for (j in 0 until tabView.childCount) {
+            val child = tabView.getChildAt(j)
+            if (child is TextView) {
+                child.typeface = Typeface.create("sans-serif-medium", if (isSelected) Typeface.BOLD else Typeface.NORMAL)
             }
         }
     }
@@ -880,17 +891,17 @@ class ConfigurationFragment @JvmOverloads constructor(
             isWhite -> {
                 capsuleBg = Color.parseColor("#E5E7EB")
                 selectedText = Color.parseColor("#0F172A")
-                unselectedText = Color.parseColor("#707579")
+                unselectedText = Color.parseColor("#475569")
             }
             isLightGray -> {
                 capsuleBg = Color.parseColor("#E2E8F0")
                 selectedText = Color.parseColor("#0F172A")
-                unselectedText = Color.parseColor("#707579")
+                unselectedText = Color.parseColor("#475569")
             }
             isNight -> {
                 capsuleBg = ColorUtils.setAlphaComponent(themeColor, 60)
                 selectedText = ColorUtils.blendARGB(themeColor, Color.WHITE, 0.40f)
-                unselectedText = Color.parseColor("#7F95A8")
+                unselectedText = Color.parseColor("#94A3B8")
             }
             else -> {
                 capsuleBg = ColorUtils.setAlphaComponent(themeColor, 36)
@@ -900,7 +911,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 } else {
                     themeColor
                 }
-                unselectedText = Color.parseColor("#707579")
+                unselectedText = Color.parseColor("#475569")
             }
         }
 
@@ -1286,6 +1297,17 @@ class ConfigurationFragment @JvmOverloads constructor(
                 false
             }
         }.attach()
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                updateTabTypeface(tab, true)
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                updateTabTypeface(tab, false)
+            }
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                updateTabTypeface(tab, true)
+            }
+        })
         tabLayout.post {
             applyTabMargins()
             styleCapsuleTabLayout()

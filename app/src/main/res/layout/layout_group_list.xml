@@ -89,7 +89,7 @@
             app:tabPaddingBottom="0dp"
             app:tabRippleColor="@android:color/transparent"
             app:tabTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule"
-            app:tabSelectedTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule"
+            app:tabSelectedTextAppearance="@style/Widget.SagerNet.TabLayout.TextAppearance.Capsule.Selected"
             app:tabUnboundedRipple="false" />
 
     </FrameLayout>

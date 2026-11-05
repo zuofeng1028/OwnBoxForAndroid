@@ -378,6 +378,10 @@
         <item name="android:includeFontPadding">false</item>
     </style>
 
+    <style name="Widget.SagerNet.TabLayout.TextAppearance.Capsule.Selected" parent="Widget.SagerNet.TabLayout.TextAppearance.Capsule">
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!-- ElevatedCard: shadow + tonal surface, no stroke. -->
     <style name="Widget.SagerNet.CardView.Elevated">
         <item name="cardElevation">@dimen/card_elevation</item>
@@ -472,9 +476,9 @@
     </style>
     <style name="Widget.SagerNet.DrawerSettingsButton" parent="Widget.MaterialComponents.Button">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SagerNet.DrawerButton</item>
-        <item name="android:textColor">@color/ownbox_drawer_action_text</item>
-        <item name="iconTint">@color/ownbox_drawer_action_text</item>
-        <item name="backgroundTint">@color/ownbox_drawer_action_fill</item>
+        <item name="android:textColor">?colorOnPrimary</item>
+        <item name="iconTint">?colorOnPrimary</item>
+        <item name="backgroundTint">?colorPrimary</item>
         <item name="strokeWidth">0dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
