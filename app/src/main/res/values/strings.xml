@@ -187,6 +187,10 @@
     <string name="simple_download_url">Simple download URL</string>
     <string name="speed_test_url_invalid">Enter a valid HTTP or HTTPS URL</string>
     <string name="speed_test_group">Speed test this group</string>
+    <string name="locate_active_profile">Locate active profile</string>
+    <string name="no_active_profile_found">No active profile selected or connected</string>
+    <string name="active_profile_group_disabled">Group of active profile is disabled</string>
+    <string name="located_active_profile">Located: %s</string>
     <string name="speed_test_confirm_title">Run speed test?</string>
     <string name="speed_test_confirm_message">Speed testing can use significant data. Profiles are tested one at a time through their own proxy.</string>
     <string name="speed_test_stage_pending">Waiting</string>

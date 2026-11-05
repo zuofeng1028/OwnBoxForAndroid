@@ -659,6 +659,10 @@
     <string name="simple_download_url">簡單下載 URL</string>
     <string name="speed_test_url_invalid">請輸入有效的 HTTP 或 HTTPS URL</string>
     <string name="speed_test_group">速度測試本組</string>
+    <string name="locate_active_profile">定位當前節點</string>
+    <string name="no_active_profile_found">當前未選擇或連接任何節點</string>
+    <string name="active_profile_group_disabled">當前節點所在分組已被停用</string>
+    <string name="located_active_profile">已定位至：%s</string>
     <string name="speed_test_confirm_title">執行速度測試？</string>
     <string name="speed_test_confirm_message">速度測試可能使用大量數據。各設定檔會依序透過其自身代理進行測試。</string>
     <string name="speed_test_stage_pending">等候中</string>

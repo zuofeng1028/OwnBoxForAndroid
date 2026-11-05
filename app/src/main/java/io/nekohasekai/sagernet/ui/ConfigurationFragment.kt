@@ -54,6 +54,7 @@ import androidx.preference.PreferenceDataStore
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -1035,7 +1036,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                 view.findViewById<View>(R.id.toolbar_title_view)?.visibility = View.GONE
                 toolbar.menu.findItem(R.id.action_add)?.isVisible = false
                 toolbar.menu.findItem(R.id.action_connection_url_test)?.isVisible = false
-                toolbar.menu.findItem(R.id.action_speed_test_group)?.isVisible = false
+                toolbar.menu.findItem(R.id.action_locate_active_profile)?.isVisible = false
                 toolbar.title = null
                 updateSearchMaxWidth(searchView)
                 updateToolbarMenuTitles()
@@ -1169,36 +1170,73 @@ class ConfigurationFragment @JvmOverloads constructor(
         }.attach()
 
         toolbar.setOnClickListener {
-            val fragment = getCurrentGroupFragment()
-
-            if (fragment != null) {
-                val selectedProxy = selectedItem?.id ?: DataStore.selectedProxy
-                val selectedProfileIndex =
-                    fragment.adapter!!.configurationIdList.indexOf(selectedProxy)
-                if (selectedProfileIndex != -1) {
-                    val layoutManager = fragment.layoutManager
-                    if (layoutManager is LinearLayoutManager) {
-                        val first = layoutManager.findFirstVisibleItemPosition()
-                        val last = layoutManager.findLastVisibleItemPosition()
-
-                        if (selectedProfileIndex !in first..last) {
-                            fragment.configurationListView.scrollTo(selectedProfileIndex, true)
-                            return@setOnClickListener
-                        }
-                    } else {
-                        fragment.configurationListView.scrollTo(selectedProfileIndex, true)
-                        return@setOnClickListener
-                    }
-
-                }
-
-                fragment.configurationListView.scrollTo(0)
-            }
-
+            locateActiveProfile()
         }
 
         DataStore.profileCacheStore.registerChangeListener(this)
         DataStore.configurationStore.registerChangeListener(this)
+    }
+
+    fun locateActiveProfile() {
+        runOnDefaultDispatcher {
+            val targetId = when {
+                select && selectedItem != null -> selectedItem.id
+                DataStore.serviceState.started && DataStore.currentProfile > 0L -> DataStore.currentProfile
+                DataStore.selectedProxy > 0L -> DataStore.selectedProxy
+                DataStore.currentProfile > 0L -> DataStore.currentProfile
+                else -> 0L
+            }
+
+            if (targetId <= 0L) {
+                onMainDispatcher {
+                    safeSnackbar(R.string.no_active_profile_found)
+                }
+                return@runOnDefaultDispatcher
+            }
+
+            val targetEntity = SagerDatabase.proxyDao.getById(targetId)
+            if (targetEntity == null) {
+                onMainDispatcher {
+                    safeSnackbar(R.string.no_active_profile_found)
+                }
+                return@runOnDefaultDispatcher
+            }
+
+            if (DataStore.isGroupDisabled(targetEntity.groupId)) {
+                onMainDispatcher {
+                    safeSnackbar(R.string.active_profile_group_disabled)
+                }
+                return@runOnDefaultDispatcher
+            }
+
+            val targetGroupId = targetEntity.groupId
+            val displayName = targetEntity.displayName()
+
+            onMainDispatcher {
+                if (!isAdded || view == null || !::adapter.isInitialized || !::groupPager.isInitialized) return@onMainDispatcher
+
+                var targetPageIndex = adapter.groupList.indexOfFirst { it.id == targetGroupId }
+                if (targetPageIndex < 0) {
+                    targetPageIndex = adapter.groupList.indexOfFirst { it.id == ALL_GROUPS_SENTINEL_ID }
+                }
+
+                if (targetPageIndex >= 0 && groupPager.currentItem != targetPageIndex) {
+                    groupPager.setCurrentItem(targetPageIndex, true)
+                    groupPager.postDelayed({
+                        val targetFrag = adapter.groupFragments[targetGroupId]
+                            ?: adapter.groupFragments[ALL_GROUPS_SENTINEL_ID]
+                            ?: getCurrentGroupFragment()
+                        targetFrag?.locateProfile(targetId, true)
+                    }, 280L)
+                } else {
+                    val currentFrag = getCurrentGroupFragment()
+                        ?: adapter.groupFragments[targetGroupId]
+                    currentFrag?.locateProfile(targetId, true)
+                }
+
+                safeSnackbar(getString(R.string.located_active_profile, displayName))
+            }
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -1834,6 +1872,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                         ).showAllowingStateLoss(parentFragmentManager)
                     }
                 }
+                return true
+            }
+
+            R.id.action_locate_active_profile -> {
+                locateActiveProfile()
                 return true
             }
 
@@ -2780,6 +2823,88 @@ class ConfigurationFragment @JvmOverloads constructor(
 
         lateinit var undoManager: UndoSnackbarManager<ProxyEntity>
         var adapter: ConfigurationAdapter? = null
+        var pendingLocateProfileId: Long? = null
+
+        fun locateProfile(profileId: Long, highlight: Boolean = true) {
+            val ad = adapter
+            if (ad == null || !::configurationListView.isInitialized) {
+                pendingLocateProfileId = profileId
+                return
+            }
+            val index = ad.configurationIdList.indexOf(profileId)
+            if (index == -1) {
+                pendingLocateProfileId = profileId
+                return
+            }
+            pendingLocateProfileId = null
+            scrollToAndHighlight(index, highlight)
+        }
+
+        fun scrollToAndHighlight(index: Int, highlight: Boolean = true) {
+            if (!::configurationListView.isInitialized) return
+            val lm = layoutManager
+            var alreadyVisible = false
+            if (lm is LinearLayoutManager) {
+                val first = lm.findFirstCompletelyVisibleItemPosition()
+                val last = lm.findLastCompletelyVisibleItemPosition()
+                if (index in first..last) {
+                    alreadyVisible = true
+                }
+            }
+
+            if (!alreadyVisible) {
+                val ctx = context
+                if (ctx != null) {
+                    try {
+                        val scroller = object : LinearSmoothScroller(ctx) {
+                            override fun getVerticalSnapPreference(): Int = SNAP_TO_START
+                            override fun calculateDtToFit(
+                                viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int
+                            ): Int {
+                                val topOffset = dp2px(48)
+                                return (boxStart + topOffset) - viewStart
+                            }
+                        }
+                        scroller.targetPosition = index
+                        lm.startSmoothScroll(scroller)
+                    } catch (e: Exception) {
+                        configurationListView.scrollToPosition(index)
+                    }
+                } else {
+                    configurationListView.scrollToPosition(index)
+                }
+            }
+
+            if (highlight) {
+                val delay = if (alreadyVisible) 60L else 320L
+                configurationListView.postDelayed({
+                    highlightCard(index)
+                }, delay)
+            }
+        }
+
+        private fun highlightCard(index: Int) {
+            if (!isAdded || view == null) return
+            val holder = configurationListView.findViewHolderForAdapterPosition(index) as? ConfigurationHolder
+            val cardView = holder?.itemView ?: return
+
+            if (DataStore.hapticFeedback) {
+                cardView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            }
+
+            cardView.animate()
+                .scaleX(1.025f)
+                .scaleY(1.025f)
+                .setDuration(160)
+                .withEndAction {
+                    cardView.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(200)
+                        .start()
+                }
+                .start()
+        }
 
         override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
@@ -3927,7 +4052,18 @@ class ConfigurationFragment @JvmOverloads constructor(
                     configurationIdList.addAll(newProfileIds)
                     notifyDataSetChanged()
 
-                    if (selectedProfileIndex != -1) {
+                    val pendingId = pendingLocateProfileId
+                    if (pendingId != null && pendingId > 0L) {
+                        val pendingIndex = configurationIdList.indexOf(pendingId)
+                        if (pendingIndex != -1) {
+                            pendingLocateProfileId = null
+                            scrollToAndHighlight(pendingIndex, true)
+                        } else if (selectedProfileIndex != -1) {
+                            configurationListView.scrollTo(selectedProfileIndex, true)
+                        } else if (newProfiles.isNotEmpty()) {
+                            configurationListView.scrollTo(0, true)
+                        }
+                    } else if (selectedProfileIndex != -1) {
                         configurationListView.scrollTo(selectedProfileIndex, true)
                     } else if (newProfiles.isNotEmpty()) {
                         configurationListView.scrollTo(0, true)
@@ -4702,7 +4838,7 @@ class ConfigurationFragment @JvmOverloads constructor(
             }
             toolbar.menu.findItem(R.id.action_add)?.isVisible = true
             toolbar.menu.findItem(R.id.action_connection_url_test)?.isVisible = true
-            toolbar.menu.findItem(R.id.action_speed_test_group)?.isVisible = true
+            toolbar.menu.findItem(R.id.action_locate_active_profile)?.isVisible = true
             toolbar.title = null
 
             if (!select) {

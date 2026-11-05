@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.21 预览版
+
+* 顶部新增一键定位当前活跃节点与分组回跳，优化速度测试整合至功能菜单
+
 # OwnBox for Android v26.11.3.20 预览版
 
 * 收窄左侧侧边栏宽度，优化抽屉菜单项间距与视觉留白
