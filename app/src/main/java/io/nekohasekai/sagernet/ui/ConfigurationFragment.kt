@@ -501,6 +501,9 @@ class ConfigurationFragment @JvmOverloads constructor(
     private val actionMenuLayoutListener = View.OnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
         if (v is ActionMenuView) {
             applyActionMenuSpacing(v)
+            (activity as? MainActivity)?.let { main ->
+                moe.matsuri.nb4a.ui.MenuScrimHelper.hookActionMenuView(toolbar, v, main)
+            }
         }
     }
 
@@ -557,6 +560,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                 child.removeOnLayoutChangeListener(actionMenuLayoutListener)
                 child.addOnLayoutChangeListener(actionMenuLayoutListener)
                 applyActionMenuSpacing(child)
+                (activity as? MainActivity)?.let { main ->
+                    moe.matsuri.nb4a.ui.MenuScrimHelper.hookActionMenuView(toolbar, child, main)
+                }
             }
         }
         toolbar.post {
@@ -577,6 +583,9 @@ class ConfigurationFragment @JvmOverloads constructor(
                     child.removeOnLayoutChangeListener(actionMenuLayoutListener)
                     child.addOnLayoutChangeListener(actionMenuLayoutListener)
                     applyActionMenuSpacing(child)
+                    (activity as? MainActivity)?.let { main ->
+                        moe.matsuri.nb4a.ui.MenuScrimHelper.hookActionMenuView(toolbar, child, main)
+                    }
                 }
             }
         }
@@ -1515,6 +1524,7 @@ class ConfigurationFragment @JvmOverloads constructor(
     }
 
     override fun onMenuItemClick(item: MenuItem): Boolean {
+        (activity as? MainActivity)?.hideMenuScrim()
         when (item.itemId) {
             R.id.action_scan_qr_code -> {
                 startActivity(Intent(context, ScannerActivity::class.java))
@@ -4236,12 +4246,11 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
 
                 popup.setOnMenuItemClickListener(this)
-                popup.setOnDismissListener {
+                moe.matsuri.nb4a.ui.MenuScrimHelper.showPopupMenuWithScrim(popup, activity) {
                     if (activeNodePopupMenu === popup) {
                         activeNodePopupMenu = null
                     }
                 }
-                popup.show()
             }
 
             val profileName: TextView = view.findViewById(R.id.profile_name)
@@ -4416,7 +4425,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                         else -> false
                     }
                 }
-                popup.show()
+                moe.matsuri.nb4a.ui.MenuScrimHelper.showPopupMenuWithScrim(popup, activity)
             }
 
             private fun applySelected(selected: Boolean) {

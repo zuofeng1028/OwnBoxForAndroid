@@ -605,7 +605,7 @@ class GroupFragment : ToolbarFragment(R.layout.layout_group),
                     popup.menu.removeItem(R.id.action_share_subscription)
                 }
                 popup.setOnMenuItemClickListener(this)
-                popup.show()
+                moe.matsuri.nb4a.ui.MenuScrimHelper.showPopupMenuWithScrim(popup, activity)
             }
 
             if (proxyGroup.id in GroupUpdater.updating) {

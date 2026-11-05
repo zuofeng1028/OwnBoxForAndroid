@@ -224,6 +224,16 @@ class MainActivity : ThemedActivity(),
                 binding.drawerLayout.closeDrawers()
                 return@addCallback
             }
+            if (binding.menuScrimOverlay?.visibility == View.VISIBLE) {
+                hideMenuScrim()
+                val fragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
+                if (fragment?.isToolbarInitialized == true) {
+                    try {
+                        fragment.toolbar.dismissPopupMenus()
+                    } catch (_: Throwable) {}
+                }
+                return@addCallback
+            }
             val fragment = supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
             if (fragment?.onBackPressed() == true) return@addCallback
             if (fragment is ConfigurationFragment) {
@@ -977,6 +987,35 @@ class MainActivity : ThemedActivity(),
         val fragment =
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
+    }
+
+    private var activeMenuToken: Any? = null
+
+    fun showMenuScrim(token: Any? = null, onScrimClick: (() -> Unit)? = null) {
+        val scrim = binding.menuScrimOverlay ?: return
+        activeMenuToken = token ?: Any()
+        scrim.visibility = View.VISIBLE
+        scrim.animate().cancel()
+        scrim.animate().alpha(1f).setDuration(200).start()
+        scrim.setOnClickListener {
+            onScrimClick?.invoke()
+            hideMenuScrim(token)
+        }
+    }
+
+    fun hideMenuScrim(token: Any? = null) {
+        if (token != null && activeMenuToken != null && token !== activeMenuToken) {
+            return
+        }
+        activeMenuToken = null
+        val scrim = binding.menuScrimOverlay ?: return
+        scrim.animate().cancel()
+        scrim.animate().alpha(0f).setDuration(200).withEndAction {
+            if (activeMenuToken == null) {
+                scrim.visibility = View.GONE
+                scrim.setOnClickListener(null)
+            }
+        }.start()
     }
 
 }

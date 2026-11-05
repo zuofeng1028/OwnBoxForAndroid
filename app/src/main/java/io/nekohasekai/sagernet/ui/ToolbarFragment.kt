@@ -73,6 +73,9 @@ open class ToolbarFragment : Fragment {
                 DrawableCompat.setTint(tinted, primaryTextColor)
                 toolbar.overflowIcon = tinted
             }
+            (activity as? MainActivity)?.let { main ->
+                moe.matsuri.nb4a.ui.MenuScrimHelper.hookToolbar(toolbar, main)
+            }
         }
         val appbar = view.findViewById<AppBarLayout?>(R.id.appbar)
         if (appbar != null) {
@@ -85,6 +88,11 @@ open class ToolbarFragment : Fragment {
             }
             ViewCompat.requestApplyInsets(appbar)
         }
+    }
+
+    override fun onDestroyView() {
+        (activity as? MainActivity)?.hideMenuScrim()
+        super.onDestroyView()
     }
 
     open fun onKeyDown(ketCode: Int, event: KeyEvent) = false

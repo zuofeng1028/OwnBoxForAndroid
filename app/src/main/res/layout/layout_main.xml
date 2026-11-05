@@ -199,6 +199,15 @@
 
         </io.nekohasekai.sagernet.widget.StatsBar>
 
+        <View
+            android:id="@+id/menu_scrim_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:visibility="gone"
+            android:alpha="0"
+            android:elevation="20dp" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
