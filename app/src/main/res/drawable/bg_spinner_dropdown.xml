@@ -6,9 +6,4 @@
     <stroke
         android:width="1.5dp"
         android:color="@color/popup_dropdown_stroke" />
-    <padding
-        android:top="6dp"
-        android:bottom="6dp"
-        android:left="4dp"
-        android:right="4dp" />
 </shape>
