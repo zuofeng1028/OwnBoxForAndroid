@@ -156,13 +156,13 @@ object MenuScrimHelper {
                     } catch (_: Throwable) {}
                 }
                 showingHelper?.setOnDismissListener {
-                    toolbar.post {
+                    toolbar.postDelayed({
                         if (!isAnyToolbarMenuShowing(amv, toolbar)) {
                             activity.hideMenuScrim(TOOLBAR_TOKEN)
                         } else {
                             checkAndHookActiveToolbarPopups(toolbar, amv, activity)
                         }
-                    }
+                    }, 120)
                 }
             }
         } catch (_: Throwable) {}
@@ -180,13 +180,8 @@ object MenuScrimHelper {
                     toolbar.dismissPopupMenus()
                 } catch (_: Throwable) {}
             }
-            toolbar.post {
-                checkAndHookActiveToolbarPopups(toolbar, amv, activity)
-            }
-            toolbar.postDelayed({
-                checkAndHookActiveToolbarPopups(toolbar, amv, activity)
-            }, 60)
-            return originalCallback?.onOpenSubMenu(subMenu) ?: false
+            scheduleToolbarCheck(toolbar, amv, activity)
+            return originalCallback?.onOpenSubMenu(subMenu) ?: true
         }
 
         override fun onCloseMenu(menu: MenuBuilder, allMenusAreClosing: Boolean) {
@@ -194,13 +189,7 @@ object MenuScrimHelper {
             if (allMenusAreClosing) {
                 activity.hideMenuScrim(TOOLBAR_TOKEN)
             } else {
-                toolbar.post {
-                    if (!isAnyToolbarMenuShowing(amv, toolbar)) {
-                        activity.hideMenuScrim(TOOLBAR_TOKEN)
-                    } else {
-                        checkAndHookActiveToolbarPopups(toolbar, amv, activity)
-                    }
-                }
+                scheduleToolbarCheck(toolbar, amv, activity)
             }
         }
     }
