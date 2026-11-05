@@ -1,5 +1,10 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.26 预览版
+
+* 左侧抽屉边栏展开后右上角与右下角升级为 24dp 温润大圆角与柔和阴影，与全局圆角风格完美呼应
+* 右上角功能菜单升级为基于按钮锚点缩放与五次方物理缓速的弹出/收起过渡动效，交互更灵动丝滑
+
 # OwnBox for Android v26.11.3.25 预览版
 
 * 优化右上角功能菜单为 Material 3 / Telegram 同款 24dp 饱满大圆角，呼应节点卡片圆润美感

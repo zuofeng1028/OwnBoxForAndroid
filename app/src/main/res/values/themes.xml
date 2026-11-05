@@ -52,7 +52,7 @@
 
         <!-- 沉浸式 Top App Bar 主题与样式 -->
         <item name="actionBarTheme">@style/ThemeOverlay.SagerNet.Toolbar</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.SagerNet.Toolbar.Popup</item>
         <item name="appBarLayoutStyle">@style/Widget.SagerNet.AppBarLayout</item>
         <item name="toolbarStyle">@style/Widget.SagerNet.Toolbar</item>
         <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton</item>
@@ -261,7 +261,7 @@
         <item name="actionMenuTextColor">?android:attr/textColorPrimary</item>
         <item name="colorSurface">@color/md3_surface</item>
         <item name="android:colorBackground">@color/md3_surface</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.SagerNet.Toolbar.Popup</item>
         <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton</item>
         <item name="actionOverflowButtonStyle">@style/Widget.SagerNet.ActionOverflowButton</item>
         <item name="toolbarNavigationButtonStyle">@style/Widget.SagerNet.ToolbarNavigationButton</item>
@@ -283,7 +283,7 @@
         <item name="actionMenuTextColor">?android:attr/textColorPrimary</item>
         <item name="colorSurface">@color/md3_surface</item>
         <item name="android:colorBackground">@color/md3_surface</item>
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.DayNight</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.SagerNet.Toolbar.Popup</item>
         <item name="actionButtonStyle">@style/Widget.SagerNet.ActionButton.Compact</item>
         <item name="actionOverflowButtonStyle">@style/Widget.SagerNet.ActionOverflowButton.Compact</item>
         <item name="toolbarNavigationButtonStyle">@style/Widget.SagerNet.ToolbarNavigationButton</item>
@@ -404,6 +404,11 @@
         <item name="android:popupAnimationStyle">@style/PopupMenuAnimation</item>
         <item name="android:dropDownHorizontalOffset">-6dp</item>
         <item name="android:dropDownVerticalOffset">4dp</item>
+    </style>
+
+    <style name="ThemeOverlay.SagerNet.Toolbar.Popup" parent="ThemeOverlay.AppCompat.DayNight">
+        <item name="actionOverflowMenuStyle">@style/Widget.SagerNet.PopupMenu.Overflow</item>
+        <item name="popupMenuStyle">@style/Widget.SagerNet.PopupMenu</item>
     </style>
 
     <style name="ShapeAppearanceOverlay.SagerNet.BottomSheet" parent="">

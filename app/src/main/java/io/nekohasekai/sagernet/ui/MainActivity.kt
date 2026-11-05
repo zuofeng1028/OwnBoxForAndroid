@@ -155,6 +155,14 @@ class MainActivity : ThemedActivity(),
             resources.displayMetrics.widthPixels - (72 * resources.displayMetrics.density).toInt(),
         )
         drawerRoot.layoutParams = drawerRoot.layoutParams.apply { width = drawerWidth }
+        val drawerRadius = resources.getDimension(R.dimen.drawer_corner_radius)
+        drawerRoot.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                outline.setRoundRect(-drawerRadius.toInt(), 0, view.width, view.height, drawerRadius)
+            }
+        }
+        drawerRoot.clipToOutline = true
+        drawerRoot.elevation = dp(8).toFloat()
         if (drawerFactor != 1.0f) {
             drawerSettingsButton.scaleX = drawerFactor
             drawerSettingsButton.scaleY = drawerFactor
