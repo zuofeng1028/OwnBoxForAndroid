@@ -68,7 +68,8 @@ open class ToolbarFragment : Fragment {
                 DrawableCompat.setTint(tinted, primaryTextColor)
                 toolbar.navigationIcon = tinted
             }
-            toolbar.overflowIcon?.let {
+            val overflow = toolbar.overflowIcon ?: androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_more_vert_24)
+            overflow?.let {
                 val tinted = it.mutate()
                 DrawableCompat.setTint(tinted, primaryTextColor)
                 toolbar.overflowIcon = tinted

@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.49 预览版
+
+* 升级主页右上角菜单按钮为圆环垂直三点半实心科技质感
+
 # OwnBox for Android v26.11.3.48 预览版
 
 * 全面升级设置页面各项功能的矢量图标为成熟质感半实心双色调风格
