@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.48 预览版
+
+* 全面升级设置页面各项功能的矢量图标为成熟质感半实心双色调风格
+
 # OwnBox for Android v26.11.3.47 预览版
 
 * 紧急修复侧边栏分组矢量图标路径参数解析异常导致的启动闪退缺陷
