@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.47 预览版
+
+* 紧急修复侧边栏分组矢量图标路径参数解析异常导致的启动闪退缺陷
+
 # OwnBox for Android v26.11.3.46 预览版
 
 * 侧边栏展开全页十项功能图标全面升级为极客双色调半实心科技质感
