@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.45 预览版
+
+* 升级主页顶部配置导入按钮为硬朗圆环加号半实心质感
+
 # OwnBox for Android v26.11.3.44 预览版
 
 * 升级顶部抽屉侧边栏按钮为极客双色调半实心科技质感
