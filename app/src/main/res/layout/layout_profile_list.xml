@@ -199,6 +199,7 @@
         android:paddingLeft="4dp"
         android:paddingTop="4dp"
         android:paddingRight="4dp"
+        android:paddingBottom="96dp"
         android:scrollbars="none"
         android:scrollbarSize="0dp"
         app:fastScrollAutoHide="true"

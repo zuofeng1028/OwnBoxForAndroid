@@ -42,6 +42,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.view.size
+import androidx.core.view.updatePadding
 import androidx.core.view.GravityCompat
 import android.view.Gravity
 import androidx.core.widget.addTextChangedListener
@@ -1440,8 +1441,16 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onDestroy()
     }
 
+    fun updateAllGroupsBottomPadding(connected: Boolean = DataStore.serviceState.connected) {
+        if (!::adapter.isInitialized) return
+        adapter.groupFragments.values.forEach { fragment ->
+            fragment.updateListBottomPadding(connected)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        updateAllGroupsBottomPadding()
         if (speedTestHidden && speedTestJob != null) {
             speedTestHidden = false
             speedTestNotification?.updateNotification(0, 0, true)
@@ -3190,6 +3199,7 @@ class ConfigurationFragment @JvmOverloads constructor(
                     configurationListView.adapter = adapter
                 }
                 lastCompactProfileRows = DataStore.compactProfileRows
+                updateListBottomPadding()
             }
 
             if (::configurationListView.isInitialized && configurationListView.size == 0) {
@@ -3383,7 +3393,25 @@ class ConfigurationFragment @JvmOverloads constructor(
                 setupItemTouchHelper()
                 setupBottomBarScrollDriver()
             }
+            updateListBottomPadding()
             updateSubscriptionInfoCard(view)
+        }
+
+        fun updateListBottomPadding(connected: Boolean = DataStore.serviceState.connected) {
+            if (!::configurationListView.isInitialized) return
+            if (select) {
+                configurationListView.updatePadding(bottom = dp2px(16))
+                return
+            }
+            val mainActivity = activity as? MainActivity
+            val statsHeight = mainActivity?.binding?.stats?.measuredHeight ?: 0
+            val targetPaddingDp = if (connected) {
+                val dynamicDp = (statsHeight / resources.displayMetrics.density).toInt() + 48
+                dynamicDp.coerceAtLeast(160)
+            } else {
+                96
+            }
+            configurationListView.updatePadding(bottom = dp2px(targetPaddingDp))
         }
 
         fun updateSubscriptionInfoCard(targetView: View? = this.view) {

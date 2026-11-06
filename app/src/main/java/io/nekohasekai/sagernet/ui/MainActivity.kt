@@ -763,14 +763,44 @@ class MainActivity : ThemedActivity(),
         syncMainControls(fragment, showWhenConnected = false, animate = true)
     }
 
+    fun hideControlsForDashboard() {
+        syncMainControls(
+            fragment = WebviewFragment(),
+            showWhenConnected = false,
+            animate = false,
+        )
+    }
+
+    fun onStatsBarHeightChanged() {
+        (currentMainFragment as? ConfigurationFragment)?.updateAllGroupsBottomPadding()
+    }
+
     private fun syncMainControls(
         fragment: Any? = currentMainFragment
             ?: supportFragmentManager.findFragmentById(R.id.fragment_holder),
         showWhenConnected: Boolean,
         animate: Boolean,
     ) {
-        val showControls = fragment is ConfigurationFragment || DataStore.showBottomBar
+        val isDashboard = fragment is WebviewFragment
+        val showControls = !isDashboard && (fragment is ConfigurationFragment || DataStore.showBottomBar)
         binding.stats.useExternalScrollDriver = fragment is ConfigurationFragment
+        if (isDashboard) {
+            binding.stats.visibility = View.GONE
+            binding.stats.syncMainControls(
+                false,
+                DataStore.serviceState,
+                showWhenConnected = false,
+                animate = false,
+            )
+            binding.fab.animate().cancel()
+            binding.fab.hideProgress()
+            binding.fabProgress.hide()
+            binding.fabProgress.visibility = View.GONE
+            binding.fab.hide()
+            binding.fab.visibility = View.GONE
+            return
+        }
+        binding.stats.visibility = View.VISIBLE
         binding.stats.syncMainControls(
             showControls,
             DataStore.serviceState,
@@ -779,17 +809,18 @@ class MainActivity : ThemedActivity(),
         )
         binding.fab.animate().cancel()
         if (showControls) {
+            binding.fab.visibility = View.VISIBLE
             binding.fab.translationY = 0f
             binding.fab.translationX = 0f
             binding.fab.show()
         } else {
             binding.fab.hideProgress()
             binding.fabProgress.hide()
-            binding.fabProgress.visibility = View.INVISIBLE
+            binding.fabProgress.visibility = View.GONE
             if (animate && binding.fab.isLaidOut) {
                 binding.fab.hide()
             } else {
-                binding.fab.visibility = View.INVISIBLE
+                binding.fab.visibility = View.GONE
             }
         }
     }
@@ -847,12 +878,16 @@ class MainActivity : ThemedActivity(),
         refreshConfigurationProfileState()
         io.nekohasekai.sagernet.widget.OwnBoxWidgetProvider.updateWidgets(this)
 
-        binding.fab.changeState(state, DataStore.serviceState, animate)
-        binding.stats.changeState(state)
+        val isDashboard = (currentMainFragment ?: supportFragmentManager.findFragmentById(R.id.fragment_holder)) is WebviewFragment
+        if (!isDashboard) {
+            binding.fab.changeState(state, DataStore.serviceState, animate)
+            binding.stats.changeState(state)
+        }
         syncMainControls(
             showWhenConnected = state == BaseService.State.Connected,
             animate = animateControls,
         )
+        (currentMainFragment as? ConfigurationFragment)?.updateAllGroupsBottomPadding(state == BaseService.State.Connected)
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
     }
 
