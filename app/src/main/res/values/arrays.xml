@@ -713,8 +713,8 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
-        <item>4</item>
-        <item>5</item>
+        <item>4 (推荐 / 兼容 v5)</item>
+        <item>5 (自动以 v4 模式兼容运行)</item>
         <item>6</item>
     </string-array>
 

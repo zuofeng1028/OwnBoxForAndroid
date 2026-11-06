@@ -15,7 +15,8 @@ fun parseSnell(url: String): SnellBean {
             name = (link.fragment ?: "").unUrlSafe()
 
             (link.queryParameter("version") ?: link.queryParameter("v"))?.toIntOrNull()?.let {
-                version = it.coerceIn(1, 6)
+                val parsed = it.coerceIn(1, 6)
+                version = if (parsed == 5) 4 else parsed
             }
             link.queryParameter("userkey")?.let { userKey = it.unUrlSafe() }
             (link.queryParameter("obfs-mode") ?: link.queryParameter("obfs"))?.let { obfsMode = it }
@@ -54,7 +55,8 @@ fun parseSnell(url: String): SnellBean {
         name = fragment.unUrlSafe()
 
         (queryParams["version"] ?: queryParams["v"])?.toIntOrNull()?.let {
-            version = it.coerceIn(1, 6)
+            val parsed = it.coerceIn(1, 6)
+            version = if (parsed == 5) 4 else parsed
         }
         queryParams["userkey"]?.let { userKey = it }
         (queryParams["obfs-mode"] ?: queryParams["obfs"])?.let { obfsMode = it }
@@ -98,7 +100,7 @@ fun parseClashSnell(proxy: Map<String, Any?>): SnellBean {
         serverPort = (proxy["port"] as? Number)?.toInt() ?: 443
         psk = proxy["psk"] as? String ?: ""
 
-        val clashVersion = ((proxy["version"] as? Number)?.toInt() ?: 4).coerceIn(1, 5)
+        val clashVersion = ((proxy["version"] as? Number)?.toInt() ?: 4).coerceIn(1, 6)
         version = if (clashVersion == 5) 4 else clashVersion
 
         reuse = proxy["reuse"] as? Boolean ?: false

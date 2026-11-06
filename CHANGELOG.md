@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.50 预览版
+
+* 新增特定版本加密协议的自动平滑兼容桥接机制以消除核心解码版本报错并保障正常连接通信
+
 # OwnBox for Android v26.11.3.49 预览版
 
 * 升级主页右上角菜单按钮为圆环垂直三点半实心科技质感

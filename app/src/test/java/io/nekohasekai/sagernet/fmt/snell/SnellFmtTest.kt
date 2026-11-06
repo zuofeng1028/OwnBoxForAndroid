@@ -91,4 +91,25 @@ class SnellFmtTest {
         assertEquals(bean.obfsMode, restored.obfsMode)
         assertEquals(bean.obfsHost, restored.obfsHost)
     }
+
+    @Test
+    fun snellV5FallbackToV4() {
+        // 1. Link parsing with version=5
+        val url = "snell://secret-pass@5.6.7.8:10086?version=5&obfs=http&host=cloudflare.com#V5Node"
+        val bean = parseSnell(url)
+        assertEquals(4, bean.version)
+
+        // 2. Outbound building with an existing bean that has version = 5
+        val manualV5Bean = SnellBean().apply {
+            serverAddress = "5.6.7.8"
+            serverPort = 10086
+            psk = "secret-pass"
+            version = 5
+            obfsMode = "http"
+            obfsHost = "cloudflare.com"
+        }
+        val outbound = buildSingBoxOutboundSnellBean(manualV5Bean)
+        // Must be mapped to 4 so sing-box never throws unsupported version: 5
+        assertEquals(4, outbound.version)
+    }
 }

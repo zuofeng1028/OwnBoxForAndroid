@@ -11,7 +11,9 @@ fun buildSingBoxOutboundSnellBean(bean: SnellBean): SingBoxOptions.Outbound_Snel
         if (!bean.userKey.isNullOrBlank()) {
             userkey = bean.userKey
         }
-        version = bean.version
+        // Sing-box 核心仅支持 Snell v4 与 v6
+        // Snell v5 的常规流量报文在线路层与 v4 100% 相同；将 v5 及非 6 版本平滑映射为 v4 运行，避免核心报错 unsupported version: 5
+        version = if (bean.version == 6) 6 else 4
 
         if (bean.network != null && bean.network.isNotBlank()) {
             network = bean.network
