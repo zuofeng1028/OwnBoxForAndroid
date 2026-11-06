@@ -3400,18 +3400,17 @@ class ConfigurationFragment @JvmOverloads constructor(
         fun updateListBottomPadding(connected: Boolean = DataStore.serviceState.connected) {
             if (!::configurationListView.isInitialized) return
             if (select) {
-                configurationListView.updatePadding(bottom = dp2px(16))
+                val targetPx = dp2px(16)
+                if (configurationListView.paddingBottom != targetPx) {
+                    configurationListView.updatePadding(bottom = targetPx)
+                }
                 return
             }
-            val mainActivity = activity as? MainActivity
-            val statsHeight = mainActivity?.binding?.stats?.measuredHeight ?: 0
-            val targetPaddingDp = if (connected) {
-                val dynamicDp = (statsHeight / resources.displayMetrics.density).toInt() + 48
-                dynamicDp.coerceAtLeast(160)
-            } else {
-                96
+            val targetPaddingDp = if (DataStore.showBottomBar && connected) 160 else 96
+            val targetPx = dp2px(targetPaddingDp)
+            if (configurationListView.paddingBottom != targetPx) {
+                configurationListView.updatePadding(bottom = targetPx)
             }
-            configurationListView.updatePadding(bottom = dp2px(targetPaddingDp))
         }
 
         fun updateSubscriptionInfoCard(targetView: View? = this.view) {

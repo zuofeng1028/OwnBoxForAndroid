@@ -763,16 +763,12 @@ class MainActivity : ThemedActivity(),
         syncMainControls(fragment, showWhenConnected = false, animate = true)
     }
 
-    fun hideControlsForDashboard() {
+    fun hideControlsForDashboard(fragment: ToolbarFragment) {
         syncMainControls(
-            fragment = WebviewFragment(),
+            fragment = fragment,
             showWhenConnected = false,
             animate = false,
         )
-    }
-
-    fun onStatsBarHeightChanged() {
-        (currentMainFragment as? ConfigurationFragment)?.updateAllGroupsBottomPadding()
     }
 
     private fun syncMainControls(
@@ -782,45 +778,37 @@ class MainActivity : ThemedActivity(),
         animate: Boolean,
     ) {
         val isDashboard = fragment is WebviewFragment
-        val showControls = !isDashboard && (fragment is ConfigurationFragment || DataStore.showBottomBar)
-        binding.stats.useExternalScrollDriver = fragment is ConfigurationFragment
-        if (isDashboard) {
-            binding.stats.visibility = View.GONE
-            binding.stats.syncMainControls(
-                false,
-                DataStore.serviceState,
-                showWhenConnected = false,
-                animate = false,
-            )
-            binding.fab.animate().cancel()
-            binding.fab.hideProgress()
-            binding.fabProgress.hide()
-            binding.fabProgress.visibility = View.GONE
-            binding.fab.hide()
-            binding.fab.visibility = View.GONE
-            return
-        }
-        binding.stats.visibility = View.VISIBLE
+        val isHome = fragment is ConfigurationFragment
+        val isSubList = fragment is GroupFragment || fragment is RouteFragment
+
+        // 1. 底栏是否允许展示：严格由设置项 DataStore.showBottomBar 决定（仪表盘除外）
+        val allowBottomBar = !isDashboard && DataStore.showBottomBar && (isHome || isSubList)
+
+        // 2. 飞机连接按钮是否展示：主页永远展示；子列表仅在开启底栏时展示；仪表盘与设置页面彻底隐藏
+        val showFab = !isDashboard && (isHome || (DataStore.showBottomBar && isSubList))
+
+        binding.stats.useExternalScrollDriver = isHome
         binding.stats.syncMainControls(
-            showControls,
+            allowBottomBar,
             DataStore.serviceState,
-            showWhenConnected,
+            showWhenConnected && allowBottomBar,
             animate,
         )
         binding.fab.animate().cancel()
-        if (showControls) {
+        if (showFab) {
             binding.fab.visibility = View.VISIBLE
             binding.fab.translationY = 0f
             binding.fab.translationX = 0f
+            binding.fab.alpha = 1f
             binding.fab.show()
         } else {
             binding.fab.hideProgress()
             binding.fabProgress.hide()
-            binding.fabProgress.visibility = View.GONE
+            binding.fabProgress.visibility = View.INVISIBLE
             if (animate && binding.fab.isLaidOut) {
                 binding.fab.hide()
             } else {
-                binding.fab.visibility = View.GONE
+                binding.fab.visibility = View.INVISIBLE
             }
         }
     }
@@ -878,11 +866,8 @@ class MainActivity : ThemedActivity(),
         refreshConfigurationProfileState()
         io.nekohasekai.sagernet.widget.OwnBoxWidgetProvider.updateWidgets(this)
 
-        val isDashboard = (currentMainFragment ?: supportFragmentManager.findFragmentById(R.id.fragment_holder)) is WebviewFragment
-        if (!isDashboard) {
-            binding.fab.changeState(state, DataStore.serviceState, animate)
-            binding.stats.changeState(state)
-        }
+        binding.fab.changeState(state, DataStore.serviceState, animate)
+        binding.stats.changeState(state)
         syncMainControls(
             showWhenConnected = state == BaseService.State.Connected,
             animate = animateControls,
@@ -967,12 +952,13 @@ class MainActivity : ThemedActivity(),
                 }
                 Key.SHOW_BOTTOM_BAR -> {
                     syncMainControls(
-                        showWhenConnected = DataStore.showBottomBar,
+                        showWhenConnected = DataStore.serviceState.connected && DataStore.showBottomBar,
                         animate = true,
                     )
                     when (val fragment = currentMainFragment
                         ?: supportFragmentManager.findFragmentById(R.id.fragment_holder)
                     ) {
+                        is ConfigurationFragment -> fragment.updateAllGroupsBottomPadding()
                         is GroupFragment -> fragment.updateBottomPadding()
                         is RouteFragment -> fragment.updateBottomPadding()
                     }

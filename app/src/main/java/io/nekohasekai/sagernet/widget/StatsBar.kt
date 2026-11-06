@@ -145,9 +145,6 @@ class StatsBar @JvmOverloads constructor(
         } else if (alpha == 0f) {
             alpha = 1f
         }
-        if (changed) {
-            (context as? MainActivity)?.onStatsBarHeightChanged()
-        }
     }
 
     private fun applyBottomBarScale() {

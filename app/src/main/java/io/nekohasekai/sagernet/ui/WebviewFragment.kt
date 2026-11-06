@@ -59,7 +59,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
     @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (activity as? MainActivity)?.hideControlsForDashboard()
+        (activity as? MainActivity)?.hideControlsForDashboard(this)
 
         // 规范化旧版本遗留的 setup 路由，使其直接访问根路径
         if (DataStore.yacdURL.startsWith("https://board.zash.run.place/#/setup")) {
@@ -408,7 +408,7 @@ class WebviewFragment : ToolbarFragment(R.layout.layout_webview), Toolbar.OnMenu
 
     override fun onResume() {
         super.onResume()
-        (activity as? MainActivity)?.hideControlsForDashboard()
+        (activity as? MainActivity)?.hideControlsForDashboard(this)
     }
 
     override fun onDestroyView() {

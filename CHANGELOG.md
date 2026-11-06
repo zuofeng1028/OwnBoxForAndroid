@@ -1,5 +1,9 @@
 # OwnBox for Android 更新日志 (Changelog)
 
+# OwnBox for Android v26.11.3.52 预览版
+
+* 严格遵循设置项控制底栏卡片展示并保障主页连接按钮常驻可用与仪表盘免遮挡
+
 # OwnBox for Android v26.11.3.51 预览版
 
 * 优化主页节点列表自适应底部滚动边距并彻底消除仪表盘界面悬浮连接按钮遮挡底栏导航按钮问题
